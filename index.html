@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ella AI — Agent Builder</title>
+<style>
+:root {
+  --purple:      #7C5CBF;
+  --purple-dark: #5A3E9B;
+  --purple-light:#EDE8F8;
+  --purple-mid:  #C4B0F0;
+  --gold:        #C9963B;
+  --white:       #FFFFFF;
+  --off-white:   #FAFAFA;
+  --grey-100:    #F4F1FB;
+  --grey-200:    #E8E2F5;
+  --grey-400:    #A89BC2;
+  --grey-600:    #6B5F82;
+  --dark:        #1A1A2E;
+  --success:     #4CAF82;
+  --error:       #E05C5C;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--grey-100); color: var(--dark); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* GATE */
+#gate {
+  position: fixed; inset: 0; z-index: 1000;
+  background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple) 60%, #9B7FD4 100%);
+  display: flex; align-items: center; justify-content: center;
+}
+.gate-card {
+  background: white; border-radius: 24px; padding: 52px 44px;
+  text-align: center; width: 100%; max-width: 440px;
+  box-shadow: 0 32px 80px rgba(92,62,155,0.35);
+}
+.gate-logo {
+  width: 72px; height: 72px; border-radius: 20px;
+  background: linear-gradient(135deg, var(--purple), var(--gold));
+  margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;
+  font-size: 32px; font-weight: 900; color: white;
+}
+.gate-card h1 { font-size: 28px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
+.gate-card .sub { color: var(--grey-600); font-size: 14px; margin-bottom: 32px; }
+.gate-field { margin-bottom: 14px; text-align: left; }
+.gate-field label { display: block; font-size: 12px; font-weight: 700; color: var(--grey-600); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; }
+.gate-input { width: 100%; padding: 13px 16px; border: 2px solid var(--grey-200); border-radius: 12px; font-size: 15px; outline: none; transition: border 0.2s; font-family: inherit; }
+.gate-input:focus { border-color: var(--purple); }
+.gate-input.key-input { font-size: 13px; letter-spacing: 0.5px; }
+.gate-btn { width: 100%; padding: 14px; margin-top: 8px; background: linear-gradient(135deg, var(--purple), var(--purple-dark)); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+.gate-btn:hover { opacity: 0.9; }
+.gate-btn.secondary { background: var(--grey-100); color: var(--dark); font-size: 13px; margin-top: 6px; border: 1.5px solid var(--grey-200); }
+.gate-error { color: var(--error); font-size: 13px; margin-top: 10px; display: none; }
+.gate-ok { color: var(--success); font-size: 13px; margin-top: 10px; display: none; }
+.gate-hint { font-size: 12px; color: var(--grey-400); margin-top: 16px; line-height: 1.5; }
+.gate-hint a { color: var(--purple); text-decoration: none; }
+
+/* APP */
+#app { display: none; flex-direction: column; height: 100vh; }
+
+/* HEADER */
+header {
+  background: linear-gradient(135deg, var(--purple-dark), var(--purple));
+  padding: 0 28px; height: 62px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 4px 20px rgba(92,62,155,0.25);
+}
+.hb { display: flex; align-items: center; gap: 12px; }
+.hlogo { width: 36px; height: 36px; border-radius: 9px; background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 900; color: white; }
+.htitle { color: white; font-size: 17px; font-weight: 700; }
+.hsub { color: var(--purple-mid); font-size: 11px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; }
+.hbadge { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.8); font-size: 12px; padding: 4px 12px; border-radius: 20px; }
+.new-btn { background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.3); color: white; padding: 7px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-left: 10px; }
+.new-btn:hover { background: rgba(255,255,255,0.25); }
+
+/* BODY */
+.app-body { display: flex; flex: 1; overflow: hidden; }
+
+/* SIDEBAR */
+.sidebar { width: 240px; flex-shrink: 0; background: white; border-right: 1px solid var(--grey-200); display: flex; flex-direction: column; overflow: hidden; }
+.sidebar-header { padding: 18px 20px 14px; border-bottom: 1px solid var(--grey-200); }
+.sidebar-header h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--grey-400); }
+.config-list { flex: 1; overflow-y: auto; padding: 12px 0; }
+.config-item { padding: 10px 20px; border-left: 3px solid transparent; cursor: pointer; transition: background 0.15s; }
+.config-item:hover { background: var(--grey-100); }
+.config-item.active { background: var(--purple-light); border-left-color: var(--purple); }
+.config-item .ci-name { font-size: 14px; font-weight: 600; color: var(--dark); }
+.config-item .ci-meta { font-size: 12px; color: var(--grey-400); margin-top: 2px; }
+.config-item .ci-date { font-size: 11px; color: var(--grey-400); margin-top: 2px; }
+.config-item.active .ci-name { color: var(--purple-dark); }
+.config-item-actions { display: flex; gap: 6px; margin-top: 4px; }
+.ci-del { font-size: 11px; color: var(--error); background: none; border: none; cursor: pointer; padding: 0; opacity: 0.7; }
+.ci-del:hover { opacity: 1; }
+.sidebar-footer { padding: 16px 20px; border-top: 1px solid var(--grey-200); }
+.sidebar-footer p { font-size: 11px; color: var(--grey-400); line-height: 1.5; }
+
+/* CHAT */
+.chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.messages { flex: 1; overflow-y: auto; padding: 28px 32px; display: flex; flex-direction: column; gap: 16px; }
+.msg { display: flex; gap: 12px; max-width: 780px; animation: fadeUp 0.25s ease; }
+.msg.user { flex-direction: row-reverse; align-self: flex-end; }
+.msg.assistant { align-self: flex-start; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.avatar { width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; }
+.msg.assistant .avatar { background: linear-gradient(135deg, var(--purple), var(--gold)); color: white; }
+.msg.user .avatar { background: var(--grey-200); color: var(--grey-600); font-size: 12px; }
+.bubble { padding: 13px 17px; border-radius: 18px; font-size: 14px; line-height: 1.65; max-width: 620px; }
+.msg.assistant .bubble { background: white; color: var(--dark); border: 1px solid var(--grey-200); border-top-left-radius: 4px; box-shadow: 0 2px 8px rgba(124,92,191,0.07); }
+.msg.user .bubble { background: linear-gradient(135deg, var(--purple), var(--purple-dark)); color: white; border-top-right-radius: 4px; }
+.bubble strong { font-weight: 700; }
+
+/* EDIT MODE BANNER */
+.edit-banner { background: linear-gradient(135deg, #C9963B, #B8861F); color: white; padding: 10px 32px; font-size: 13px; font-weight: 600; display: none; align-items: center; gap: 12px; flex-shrink: 0; }
+.edit-banner.show { display: flex; }
+.edit-banner span { flex: 1; }
+.edit-clear { background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 4px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; }
+
+/* TYPING */
+.typing { display: flex; gap: 5px; padding: 4px 0; align-items: center; }
+.typing span { width: 7px; height: 7px; border-radius: 50%; background: var(--purple-mid); animation: bounce 1.2s infinite; }
+.typing span:nth-child(2) { animation-delay: 0.2s; }
+.typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,60%,100% { transform:translateY(0); } 30% { transform:translateY(-6px); } }
+
+/* OUTPUT CARD */
+.output-card { background: white; border: 1.5px solid var(--grey-200); border-radius: 16px; overflow: hidden; margin-top: 8px; max-width: 620px; }
+.output-card-header { background: linear-gradient(135deg, var(--purple-dark), var(--purple)); padding: 14px 18px; }
+.output-card-header h4 { color: white; font-size: 14px; font-weight: 700; }
+.output-card-header p { color: var(--purple-mid); font-size: 12px; margin-top: 2px; }
+.output-tabs-mini { display: flex; border-bottom: 1px solid var(--grey-200); }
+.otab { padding: 10px 18px; font-size: 12px; font-weight: 600; color: var(--grey-400); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
+.otab.active { color: var(--purple); border-bottom-color: var(--purple); }
+.output-body { padding: 16px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; white-space: pre-wrap; max-height: 300px; overflow-y: auto; background: var(--off-white); display: none; color: var(--dark); }
+.output-body.active { display: block; }
+.output-actions { padding: 12px 16px; display: flex; gap: 10px; border-top: 1px solid var(--grey-200); flex-wrap: wrap; }
+.oa-btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; border: none; }
+.oa-copy { background: var(--purple-light); color: var(--purple); border: 1.5px solid var(--purple-mid) !important; }
+.oa-copy:hover { background: var(--purple); color: white; }
+.oa-dl { background: linear-gradient(135deg, var(--gold), #B8861F); color: white; }
+.oa-edit { background: var(--grey-100); color: var(--grey-600); border: 1.5px solid var(--grey-200) !important; }
+.oa-edit:hover { background: var(--grey-200); }
+
+/* CHANGE LOG */
+.changelog { padding: 12px 16px; border-top: 1px solid var(--grey-200); background: var(--grey-100); display: none; }
+.changelog.show { display: block; }
+.changelog h5 { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--grey-400); margin-bottom: 8px; }
+.changelog-entry { font-size: 11px; color: var(--grey-600); padding: 4px 0; border-bottom: 1px solid var(--grey-200); line-height: 1.4; }
+.changelog-entry:last-child { border-bottom: none; }
+.changelog-entry .cl-time { color: var(--grey-400); margin-right: 6px; }
+
+/* CONFIDENCE SCORE */
+.confidence-bar-wrap { padding: 12px 18px 10px; border-bottom: 1px solid var(--grey-200); background: var(--grey-100); }
+.confidence-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.confidence-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--grey-400); }
+.confidence-pct { font-size: 14px; font-weight: 800; }
+.confidence-pct.high { color: var(--success); }
+.confidence-pct.mid { color: var(--gold); }
+.confidence-pct.low { color: var(--error); }
+.confidence-bar { height: 6px; border-radius: 10px; background: var(--grey-200); overflow: hidden; }
+.confidence-fill { height: 100%; border-radius: 10px; transition: width 0.4s ease; }
+.confidence-fill.high { background: var(--success); }
+.confidence-fill.mid { background: var(--gold); }
+.confidence-fill.low { background: var(--error); }
+.confidence-note { font-size: 11px; color: var(--grey-400); margin-top: 5px; }
+
+/* CHECKLIST MODAL */
+.modal-overlay { position: fixed; inset: 0; background: rgba(26,26,46,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s ease; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+.modal { background: white; border-radius: 20px; padding: 32px; width: 100%; max-width: 480px; box-shadow: 0 24px 60px rgba(92,62,155,0.25); max-height: 80vh; overflow-y: auto; }
+.modal h3 { font-size: 18px; font-weight: 800; color: var(--dark); margin-bottom: 4px; }
+.modal .modal-sub { font-size: 13px; color: var(--grey-600); margin-bottom: 24px; }
+.checklist-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--grey-200); }
+.checklist-item:last-of-type { border-bottom: none; }
+.checklist-item input[type=checkbox] { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--purple); flex-shrink: 0; cursor: pointer; }
+.checklist-item label { font-size: 13px; color: var(--dark); line-height: 1.5; cursor: pointer; }
+.checklist-item label span { display: block; font-size: 11px; color: var(--grey-400); margin-top: 2px; }
+.checklist-item.checked label { color: var(--grey-400); text-decoration: line-through; }
+.modal-footer { margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end; }
+.modal-btn { padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; }
+.modal-btn.primary { background: linear-gradient(135deg, var(--purple), var(--purple-dark)); color: white; }
+.modal-btn.secondary { background: var(--grey-100); color: var(--dark); border: 1.5px solid var(--grey-200); }
+.checklist-progress { font-size: 12px; font-weight: 700; color: var(--purple); margin-bottom: 16px; }
+
+
+
+/* QUICK FORM CARD */
+.qform-card { background: white; border: 1.5px solid var(--purple-mid); border-radius: 16px; overflow: hidden; width: 100%; max-width: 560px; box-shadow: 0 4px 20px rgba(92,62,155,0.1); }
+.qform-header { background: linear-gradient(135deg, var(--purple), var(--purple-dark)); padding: 14px 18px; }
+.qform-header h4 { color: white; font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+.qform-header p { color: rgba(255,255,255,0.75); font-size: 12px; }
+.qform-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
+.qform-row { display: flex; flex-direction: column; gap: 5px; }
+.qform-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--grey-600); }
+.qform-assumed { font-size: 11px; color: var(--purple); margin-left: 4px; font-weight: 400; text-transform: none; letter-spacing: 0; }
+.qform-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.qform-pill { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--grey-200); background: white; color: var(--dark); transition: all 0.15s; user-select: none; }
+.qform-pill:hover { border-color: var(--purple); color: var(--purple); }
+.qform-pill.selected { background: var(--purple); border-color: var(--purple); color: white; }
+.qform-pill.selected-multi { background: var(--purple-light); border-color: var(--purple); color: var(--purple-dark); }
+.qform-select { width: 100%; padding: 8px 12px; border: 1.5px solid var(--grey-200); border-radius: 10px; font-size: 13px; font-family: inherit; outline: none; color: var(--dark); background: white; }
+.qform-select:focus { border-color: var(--purple); }
+.qform-input { width: 100%; padding: 8px 12px; border: 1.5px solid var(--grey-200); border-radius: 10px; font-size: 13px; font-family: inherit; outline: none; color: var(--dark); }
+.qform-input:focus { border-color: var(--purple); }
+.qform-flows { display: flex; flex-direction: column; gap: 6px; }
+.qform-flow-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1.5px solid var(--grey-200); border-radius: 10px; cursor: pointer; transition: all 0.15s; }
+.qform-flow-item:hover { border-color: var(--purple); background: var(--purple-light); }
+.qform-flow-item.selected { border-color: var(--purple); background: var(--purple-light); }
+.qform-flow-item input[type=checkbox] { accent-color: var(--purple); width: 15px; height: 15px; flex-shrink: 0; }
+.qform-flow-item label { font-size: 13px; font-weight: 600; color: var(--dark); cursor: pointer; flex: 1; }
+.qform-flow-item .flow-desc { font-size: 11px; color: var(--grey-400); font-weight: 400; }
+.qform-divider { height: 1px; background: var(--grey-200); margin: 2px 0; }
+.qform-footer { padding: 14px 18px; border-top: 1px solid var(--grey-200); background: var(--grey-100); display: flex; justify-content: space-between; align-items: center; }
+.qform-footer-note { font-size: 11px; color: var(--grey-400); }
+.qform-submit { background: linear-gradient(135deg, var(--purple), var(--purple-dark)); color: white; border: none; border-radius: 10px; padding: 10px 20px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.qform-submit:hover { opacity: 0.9; }
+.qform-section-title { font-size: 12px; font-weight: 800; color: var(--dark); text-transform: uppercase; letter-spacing: 0.5px; padding-bottom: 4px; border-bottom: 1px solid var(--grey-200); margin-bottom: 2px; }
+
+/* RESEARCH BANNER */
+.research-banner { padding: 10px 32px; font-size: 13px; display: none; align-items: center; gap: 10px; flex-shrink: 0; background: var(--purple-light); border-bottom: 1px solid var(--purple-mid); color: var(--purple-dark); }
+.research-banner.show { display: flex; }
+.research-spinner { width: 14px; height: 14px; border: 2px solid var(--purple-mid); border-top-color: var(--purple); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ATTACHMENTS */
+.input-row { display: flex; gap: 8px; align-items: flex-end; flex: 1; min-width: 0; }
+.attach-btn { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0; background: var(--grey-100); border: 1.5px solid var(--grey-200); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: all 0.15s; color: var(--grey-600); }
+.attach-btn:hover { background: var(--purple-light); border-color: var(--purple-mid); color: var(--purple); }
+#file-input { display: none; }
+.attachment-previews { padding: 8px 24px 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.attachment-previews:empty { display: none; }
+.attach-chip { display: flex; align-items: center; gap: 6px; background: var(--purple-light); border: 1.5px solid var(--purple-mid); border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 600; color: var(--purple-dark); max-width: 200px; }
+.attach-chip img { width: 24px; height: 24px; object-fit: cover; border-radius: 4px; flex-shrink: 0; }
+.attach-chip .chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.attach-chip .chip-remove { cursor: pointer; color: var(--grey-400); font-size: 14px; flex-shrink: 0; line-height: 1; }
+.attach-chip .chip-remove:hover { color: var(--error); }
+.attach-chip .chip-icon { font-size: 16px; flex-shrink: 0; }
+.msg-attachment { margin-top: 6px; }
+.msg-attachment img { max-width: 260px; max-height: 180px; border-radius: 10px; display: block; object-fit: cover; }
+.msg-attachment .doc-chip { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 5px 10px; font-size: 12px; color: white; }
+.msg.assistant .msg-attachment .doc-chip { background: var(--grey-100); border-color: var(--grey-200); color: var(--grey-600); }
+
+/* INPUT */
+.input-bar { padding: 16px 24px; background: white; border-top: 1px solid var(--grey-200); display: flex; gap: 12px; align-items: flex-end; flex-shrink: 0; }
+#user-input { flex: 1; border: 2px solid var(--grey-200); border-radius: 14px; padding: 12px 16px; font-size: 14px; outline: none; resize: none; font-family: inherit; line-height: 1.5; max-height: 120px; transition: border 0.2s; background: var(--off-white); }
+#user-input:focus { border-color: var(--purple); background: white; }
+.send-btn { width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; background: linear-gradient(135deg, var(--purple), var(--purple-dark)); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; font-size: 18px; color: white; }
+.send-btn:hover { opacity: 0.85; }
+.send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--grey-200); border-radius: 10px; }
+
+@media (max-width: 700px) {
+  .sidebar { display: none; }
+  .messages { padding: 20px 16px; }
+  .input-bar { padding: 12px 16px; }
+}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-card">
+    <div class="gate-logo">E</div>
+    <h1>Ella AI</h1>
+    <p class="sub">Agent Builder — Internal Tool</p>
+    <div class="gate-field">
+      <label>Access Password</label>
+      <input type="password" class="gate-input" id="gate-pw" placeholder="Enter password" onkeydown="if(event.key==='Enter')document.getElementById('gate-key').focus()">
+    </div>
+    <div class="gate-field">
+      <label>Anthropic API Key</label>
+      <input type="password" class="gate-input key-input" id="gate-key" placeholder="sk-ant-..." onkeydown="if(event.key==='Enter')checkGate()">
+    </div>
+    <button class="gate-btn" onclick="checkGate()">Enter →</button>
+    <button class="gate-btn secondary" onclick="testKey()">Test API key</button>
+    <p class="gate-error" id="gate-err">Incorrect password. Please try again.</p>
+    <p class="gate-ok" id="gate-ok">✓ API key is working.</p>
+    <p class="gate-hint">Your API key stays in your browser — never stored or shared.<br>Get yours at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="hb">
+      <div class="hlogo">E</div>
+      <div>
+        <div class="htitle">Ella AI</div>
+        <div class="hsub">Agent Builder</div>
+      </div>
+    </div>
+    <div class="hb">
+      <div class="hbadge">Internal Tool · v2.4</div>
+      <button class="new-btn" onclick="newSession()">+ New Agent</button>
+    </div>
+  </header>
+  <div class="app-body">
+    <div class="sidebar">
+      <div class="sidebar-header"><h3>Saved Agents</h3></div>
+      <div class="config-list" id="config-list"></div>
+      <div class="sidebar-footer"><p>Agents are saved automatically. Click any agent to reload it and continue editing.</p></div>
+    </div>
+    <div class="chat-area">
+      <div class="edit-banner" id="edit-banner">
+        <span id="edit-banner-text">✏️ Edit mode — describe what you want to change and Ella will update the output.</span>
+        <button class="edit-clear" onclick="clearEditMode()">Exit edit mode</button>
+      </div>
+      <div class="messages" id="messages"></div>
+      <div class="research-banner" id="research-banner">
+        <div class="research-spinner"></div>
+        <span id="research-status">Fetching website…</span>
+      </div>
+      <div class="attachment-previews" id="attachment-previews"></div>
+      <div class="input-bar">
+        <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt" multiple onchange="handleFileSelect(event)">
+        <div class="input-row">
+          <button class="attach-btn" onclick="document.getElementById('file-input').click()" title="Attach file or image">📎</button>
+          <textarea id="user-input" rows="1" placeholder="Type your message or attach a file…" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        </div>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()">➤</button>
+      </div>
+      <div style="padding: 6px 24px 10px; display: flex; gap: 8px;">
+        <button onclick="generateWithAssumptions()" style="font-size:11px;font-weight:700;padding:5px 12px;border-radius:8px;border:1.5px solid var(--purple);background:var(--purple-light);color:var(--purple-dark);cursor:pointer;">⚡ Generate with assumptions</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var API_KEY = '';
+var PW = 'Stanley25!';
+var chatHistory = [];
+var currentAgentData = null;
+var currentAgentId = null;
+var editMode = false;
+var pendingAttachments = []; // [{type:'image'|'doc', name:'', dataUrl:'', mimeType:'', textContent:''}]
+
+// Full system prompt — used for generation turns only
+var SYSTEM_FULL = `You are the Ella AI Agent Builder — an internal tool that helps configure AI agents called Ella for any client or sector.
+
+You can receive images and documents as attachments. Analyse any image for brand, tone, flow logic. Read any document and extract configuration fields.
+
+Your job: gather all information needed to build a production-ready system prompt and agent spec for VeycoChat.
+
+CONVERSATION STYLE:
+- Warm, efficient, sharp. Think COO not assistant.
+- Ask 2–3 focused questions per message.
+- Make smart suggestions — don't make the user repeat themselves.
+- British English. No em dashes. No filler.
+- Do NOT generate until you have confirmed every flow in detail.
+
+PHASES:
+1. Basics: client name, URL, email, hours, sector/subsector, agent name, channel, locations
+2. Flows (most important): suggest likely flows per sector, confirm V1 scope, script each flow in detail (opening, steps, branches, escalation triggers, success outcome, closing line)
+3. Rules and tone: 4–6 sector rules, client rules, warmth/formality, prohibited words, closing phrase, opening example
+4. Data and scoring: all capture fields (plain strings), lead scoring signals (5–8) with point values, band thresholds
+5. Compliance: GDPR regime, lawful basis, consent statement, retention, privacy URL, special category rules
+6. Scope: out of scope V1, CRM/integrations, V2 flows
+
+SECTOR DEFAULTS:
+Lettings: tenant/landlord flows, maintenance, referencing, viewing. Rules: no deposit advice, no referencing outcomes to tenants. Fields: name, email, phone, property, budget, move-in date, occupants. Scoring: specific property +15, ready to view +20, budget provided +10.
+Legal: case status, intake, document requests. Rules: no legal advice, no outcome confirmation. Fields: name, email, case ref, query type, urgency.
+Finance: account queries, payments, complaints. Rules: no financial advice, FCA language, immediate escalation for complaints. No account numbers over WhatsApp.
+Healthcare: special category rules apply. Escalation: distress, clinical queries, safeguarding.
+
+CONFIRMED SETUP (=== CONFIRMED SETUP === prefix): treat all listed fields as done. Go straight to flow scripts. Do not re-ask confirmed fields.
+
+ASSUMPTIONS: log every inferred/defaulted value throughout the conversation.
+
+READINESS CHECK: before generating, confirm — at least one fully scripted flow, 4+ sector rules, 5+ data fields, 4+ scoring signals, GDPR confirmed.
+
+EXCEPTION — GENERATE WITH ASSUMPTIONS: if user says "generate now", "generate with assumptions", "make it up" or similar — fill every gap with best assumption, log all assumptions, generate immediately. No caveats.
+
+WHEN READY TO GENERATE — output exactly this on its own line:
+READY_TO_GENERATE
+Then immediately output a single valid JSON object. No markdown, no extra text before or after.
+
+JSON fields required: clientName, agentName, sector, subsector, website, email, loc1Name, loc1Addr, loc2Name, loc2Addr, hours, waba, channel, crm, currency, locale, flows (string array), flowSteps (array of {flow, opening, steps[], escalationTrigger, successOutcome, closingLine}), objective, outOfScope, flowNotes, sectorRules (array of {id, rule} — min 4), clientRules (array of {id, rule} — min 2), warmth, formality, prohibited, closing, toneExample, fields (string array — min 5), scoring (array of {signal, score} — min 5), bandHot, bandWarm, bandStd, gdprRegime, privacyPolicyUrl, lawfulBasis, consentStatement, dataRetention, specialCategoryNotes, gdprRules (string array), suggestedIntegrations (array of {name, purpose, category, v1, why} — 6–8 entries, v1 always "no"), salesBrief (3–4 sentences), estimatedTimeSaving, keyPainPoints (string array — 4–6 items), v2Flows (string array), assumptions (array of {field, assumed, flag:"Needs confirmation"}).
+
+Every string field must be populated. Use "[TBC]" only if genuinely unknown.`;
+
+// Lean conversational system prompt — used for all non-generation turns (faster, smaller payload)
+var SYSTEM = `You are the Ella AI Agent Builder — an internal tool that configures AI agents called Ella for any client or sector.
+
+Gather information to build a production-ready system prompt and agent spec. Be warm, efficient, sharp. Ask 2–3 grouped questions per message. British English. No em dashes. No filler. Confirm inferences explicitly.
+
+Gather in order: (1) client basics — name, URL, email, hours, sector, agent name, channel, locations. (2) Flows — suggest likely flows, confirm V1 scope, script each in detail: opening, steps, branches, escalation triggers, success, closing line. (3) Rules and tone — sector rules, client rules, warmth/formality/prohibited/closing/opening example. (4) Data and scoring — capture fields, scoring signals with points, band thresholds. (5) GDPR — regime, lawful basis, consent, retention, privacy URL. (6) Scope — out of scope V1, CRM, V2 flows.
+
+CONFIRMED SETUP prefix (=== CONFIRMED SETUP ===): all listed fields are done — go straight to flow scripts. Do not re-ask them.
+
+SECTOR DEFAULTS: Lettings (tenant/landlord flows, maintenance, referencing — no deposit advice, no referencing outcomes to tenants). Legal (case status, intake, documents — no legal advice). Finance (account, payments, complaints — FCA language, no financial advice, immediate escalation for complaints). Healthcare (special category rules, escalate distress/clinical/safeguarding).
+
+Log every assumption. Before generating: confirm 1+ fully scripted flow, 4+ sector rules, 5+ fields, 4+ scoring signals, GDPR confirmed. EXCEPTION: if user says "generate with assumptions" or similar — fill gaps with best assumption, log all, generate immediately.
+
+When ready to generate, output READY_TO_GENERATE on its own line, then the JSON. Do NOT output the JSON schema in this conversational mode — only output it when actually generating.`;
+
+var EDIT_SYSTEM_PREFIX = `You are the Ella AI Agent Builder in EDIT MODE.
+
+The user has already built an agent. The current agent data is:
+CURRENT_DATA_PLACEHOLDER
+
+Your job is to update the agent based on the user's requested changes. Be conversational — confirm what you are changing and ask if anything else needs updating.
+
+When you have applied all changes, output exactly this on its own line:
+READY_TO_GENERATE
+Then immediately output the full updated JSON object (no markdown, no extra text) with ALL fields populated — not just the changed ones.`;
+
+// ── GATE ──────────────────────────────────────────────────────────────────────
+
+function testKey() {
+  var key = document.getElementById('gate-key').value.trim();
+  var err = document.getElementById('gate-err');
+  var ok  = document.getElementById('gate-ok');
+  err.style.display = 'none';
+  ok.style.display  = 'none';
+  if (!key) { err.textContent = 'Please enter your API key first.'; err.style.display = 'block'; return; }
+  ok.textContent = 'Testing…'; ok.style.display = 'block';
+  fetch('/.netlify/functions/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages: [{ role: 'user', content: 'Hi' }], system: 'Say ok.', apiKey: key })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    if (d.error) { ok.style.display='none'; err.textContent = '✕ ' + d.error.message; err.style.display='block'; }
+    else { ok.textContent = '✓ API key is working — you are good to go!'; ok.style.color='var(--success)'; }
+  })
+  .catch(function(e){ ok.style.display='none'; err.textContent = '✕ ' + e.message; err.style.display='block'; });
+}
+
+function checkGate() {
+  var pw  = document.getElementById('gate-pw').value;
+  var key = document.getElementById('gate-key').value.trim();
+  var err = document.getElementById('gate-err');
+  if (pw !== PW) { err.textContent = 'Incorrect password.'; err.style.display = 'block'; return; }
+  if (!key || !key.startsWith('sk-')) { err.textContent = 'Please enter a valid API key.'; err.style.display = 'block'; return; }
+  API_KEY = key;
+  try { localStorage.setItem('ella_api_key', key); } catch(e) {}
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display   = 'flex';
+  renderSidebar();
+  startSession();
+}
+
+// Auto-fill saved API key on load
+document.addEventListener('DOMContentLoaded', function() {
+  try {
+    var saved = localStorage.getItem('ella_api_key');
+    if (saved) {
+      var keyInput = document.getElementById('gate-key');
+      if (keyInput) {
+        keyInput.value = saved;
+        keyInput.style.borderColor = '#4CAF82';
+        var lbl = keyInput.parentElement && keyInput.parentElement.querySelector('label');
+        if (lbl) lbl.innerHTML = 'Anthropic API Key <span style="color:#4CAF82;font-weight:700;">✓ Remembered</span>';
+      }
+    }
+  } catch(e) {}
+});
+
+// ── SESSION ───────────────────────────────────────────────────────────────────
+
+function startSession() {
+  chatHistory = [];
+  currentAgentData = null;
+  currentAgentId = null;
+  editMode = false;
+  document.getElementById('edit-banner').classList.remove('show');
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('user-input').placeholder = 'Type your message…';
+  addMessage('assistant', "Hi! I am the Ella AI Agent Builder.\n\nWhat is the client name or website URL for this agent? Paste the URL and I will take it from there.");
+}
+
+function newSession() {
+  if (chatHistory.length > 0 && !confirm('Start a new agent? This conversation will be cleared.')) return;
+  startSession();
+}
+
+function loadAgent(id) {
+  var agents = getSavedAgents();
+  var agent = agents.find(function(a){ return a.id === id; });
+  if (!agent) return;
+  currentAgentData = agent.data;
+  currentAgentId = id;
+  editMode = true;
+  chatHistory = [];
+  document.getElementById('messages').innerHTML = '';
+
+  var banner = document.getElementById('edit-banner');
+  document.getElementById('edit-banner-text').textContent = '✏️ Editing: ' + (agent.data.clientName || 'Agent') + ' — describe any changes below.';
+  banner.classList.add('show');
+
+  addMessage('assistant', 'Welcome back. I have loaded **' + esc(agent.data.clientName || 'this agent') + '**.\n\nThe current outputs are shown below. Tell me what you would like to change and I will update them.');
+  addOutputCard(agent.data, buildPrompt(agent.data), buildSpec(agent.data), agent.changelog || []);
+  renderSidebar(id);
+}
+
+function clearEditMode() {
+  editMode = false;
+  currentAgentData = null;
+  currentAgentId = null;
+  document.getElementById('edit-banner').classList.remove('show');
+  addMessage('assistant', 'Edit mode cleared. Start a new agent or select one from the sidebar.');
+}
+
+
+// ── URL RESEARCH ──────────────────────────────────────────────────────────────
+
+function extractUrl(text) {
+  var match = text.match(/https?:\/\/[^\s]+|[a-zA-Z0-9][a-zA-Z0-9-]*\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?(?:\/[^\s]*)?/);
+  return match ? match[0] : null;
+}
+
+function showResearchBanner(msg) {
+  var banner = document.getElementById('research-banner');
+  document.getElementById('research-status').textContent = msg;
+  banner.classList.add('show');
+}
+
+function hideResearchBanner() {
+  document.getElementById('research-banner').classList.remove('show');
+}
+
+function fetchWebsite(url) {
+  var fullUrl = url.startsWith('http') ? url : 'https://' + url;
+  showResearchBanner('Fetching ' + url + '…');
+  return fetch('/.netlify/functions/fetch-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url: fullUrl })
+  })
+  .then(function(r){
+    return r.text().then(function(t) {
+      try { return JSON.parse(t); } catch(e) { return null; }
+    });
+  })
+  .then(function(d){
+    if (!d || d.error || !d.text) return null;
+    return d;
+  })
+  .catch(function(){ return null; });
+}
+
+function lookupCompaniesHouse(name) {
+  showResearchBanner('Looking up ' + name + ' on Companies House…');
+  return fetch('/.netlify/functions/companies-house', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ companyName: name })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){ return d.data || null; })
+  .catch(function(){ return null; });
+}
+
+function buildResearchContext(siteData, chData, preBrief) {
+  var parts = [];
+  if (siteData) {
+    parts.push('=== WEBSITE CONTENT ===');
+    if (siteData.title) parts.push('Page title: ' + siteData.title);
+    if (siteData.description) parts.push('Meta description: ' + siteData.description);
+    // Cap website text at 2000 chars — enough for sector/tone inference, not enough to bloat the payload
+    if (siteData.text) parts.push('Page text (extracted):\n' + siteData.text.slice(0, 2000));
+  }
+  if (chData) {
+    parts.push('\n=== COMPANIES HOUSE DATA ===');
+    parts.push('Registered name: ' + chData.companyName);
+    parts.push('Company number: ' + chData.companyNumber);
+    parts.push('Status: ' + chData.status);
+    parts.push('Incorporated: ' + chData.incorporated);
+    parts.push('Registered address: ' + chData.address);
+    if (chData.sector) parts.push('Sector (from SIC code): ' + chData.sector);
+    if (chData.sicCodes && chData.sicCodes.length) parts.push('SIC codes: ' + chData.sicCodes.join(', '));
+  }
+  if (preBrief) {
+    parts.push('\n=== SECTOR INTELLIGENCE BRIEF (pre-analysed) ===');
+    parts.push(preBrief);
+  }
+  return parts.join('\n');
+}
+
+var PRE_PASS_SYSTEM = `Classify this business in under 2 seconds. Output JSON only — no markdown, no explanation:
+{"sector":"","subsector":"","businessSummary":"","likelyFlows":[],"keyPainPoints":[],"suggestedIntegrations":[{"name":"","purpose":"","category":"","v1":"no","why":""}],"salesBrief":"","estimatedTimeSaving":"","regulatoryNotes":""}
+
+Rules:
+- sector/subsector: be specific. "Residential Lettings" not "Real Estate". "B2B SaaS" not "Technology".
+- likelyFlows: 4–6 flow names only. e.g. ["Tenant enquiry","Viewing booking","Maintenance report"]
+- keyPainPoints: 3–4 short phrases only
+- suggestedIntegrations: 6–8 tools typical for this sector. Each needs name, purpose (one sentence), category, v1 always "no", why (one sentence specific to this business)
+- salesBrief: 2 sentences max — commercial case for an AI WhatsApp agent for this specific business
+- estimatedTimeSaving: one line e.g. "6–10 hours/week"
+- regulatoryNotes: one line max`;
+
+function runPrePass(siteData, apiKey) {
+  if (!siteData || !siteData.text) return Promise.resolve(null);
+  var content = '';
+  if (siteData.title) content += 'Title: ' + siteData.title + '\n';
+  if (siteData.description) content += 'Description: ' + siteData.description + '\n';
+  // Only send first 1500 chars — enough to classify sector, not enough to slow things down
+  content += 'Website text:\n' + siteData.text.slice(0, 1500);
+
+  return fetch('/.netlify/functions/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      messages: [{ role: 'user', content: content }],
+      system: PRE_PASS_SYSTEM,
+      apiKey: apiKey
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.error || !data.content || !data.content[0]) return null;
+    var text = data.content[0].text;
+    // Strip markdown fences
+    text = text.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+    try {
+      return JSON.parse(text);
+    } catch(e) {
+      // Try to extract JSON object
+      var s = text.indexOf('{'), e2 = text.lastIndexOf('}');
+      if (s !== -1 && e2 !== -1) {
+        try { return JSON.parse(text.slice(s, e2+1)); } catch(e3) {}
+      }
+      return null;
+    }
+  })
+  .catch(function(){ return null; });
+}
+
+// ── MESSAGING ────────────────────────────────────────────────────────────────
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function generateWithAssumptions() {
+  var msg = 'Generate now with all assumptions. Do not ask any more questions — use your sector knowledge to fill every missing field. Log everything assumed in the assumptions list.';
+  document.getElementById('user-input').value = '';
+  document.getElementById('send-btn').disabled = true;
+  addMessage('user', '⚡ Generate with assumptions');
+  dispatchMessage('⚡ Generate with assumptions', msg);
+}
+
+function sendMessage() {
+  var input = document.getElementById('user-input');
+  var text  = input.value.trim();
+  if (!text && pendingAttachments.length === 0) return;
+  input.value = ''; input.style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+
+  // Auto-research URLs in early conversation (first 4 messages)
+  var url = extractUrl(text);
+  if (url && chatHistory.length < 4) {
+    var originalText = text;
+    showResearchBanner('Researching ' + url + '…');
+    fetchWebsite(url).then(function(siteData) {
+      return Promise.all([
+        Promise.resolve(siteData),
+        Promise.resolve(null)
+      ]);
+    }).then(function(results) {
+      hideResearchBanner();
+      var siteData  = results[0];
+      var chData    = null;
+      var preBrief  = null;
+
+      // Store pre-brief globally so output card can use it
+      if (preBrief) window._lastPreBrief = preBrief;
+
+      // Pre-brief is used for the quick form only — do NOT send the full JSON to Ella
+      // Instead send only a compact sector summary so she knows context without payload bloat
+      var preBriefSummary = preBrief ? [
+        'Sector: ' + (preBrief.sector || '') + (preBrief.subsector ? ' — ' + preBrief.subsector : ''),
+        'Business: ' + (preBrief.businessSummary || '').slice(0, 300),
+        'Likely flows: ' + (preBrief.likelyFlows || []).join(', '),
+        'Key pain points: ' + (preBrief.keyPainPoints || []).slice(0, 4).join('; '),
+        'Regulatory notes: ' + (preBrief.regulatoryNotes || '').slice(0, 200)
+      ].filter(Boolean).join('\n') : null;
+      var researchContext = buildResearchContext(siteData, chData, preBriefSummary);
+
+      var sources = ['website'];
+      if (chData) sources.push('Companies House');
+      if (preBrief) sources.push('sector intelligence');
+      addMessage('assistant', '📡 Research complete — pulled ' + sources.join(', ') + ' data for **' + esc(url) + '**. Confirm the details below and I will get straight to the flows.');
+
+      // Store research context for use after form submission
+      window._pendingResearchContext = researchContext;
+      window._pendingOriginalText = originalText;
+
+      if (preBrief) {
+        renderQuickForm(preBrief, url, researchContext, originalText);
+      } else {
+        var enrichedText = originalText + (researchContext ? '\n\n[BACKGROUND RESEARCH]\n' + researchContext : '');
+        dispatchMessage(originalText, enrichedText);
+      }
+    });
+    return;
+  }
+
+  dispatchMessage(text, text);
+}
+
+function renderQuickForm(brief, url, researchContext, originalText) {
+  var msgs = document.getElementById('messages');
+  var wrap = document.createElement('div');
+  wrap.className = 'msg assistant';
+  wrap.style.width = '100%';
+  wrap.style.maxWidth = '580px';
+  var av = document.createElement('div'); av.className = 'avatar'; av.textContent = 'E';
+
+  var formId = 'qf' + Date.now();
+  var likelyFlows = brief.likelyFlows || [];
+  var autoAssumptions = brief.autoAssumptions || [];
+
+  // Build hours options
+  var hoursOptions = [
+    { label: 'Mon–Fri 9am–5pm', value: 'Monday to Friday, 9am–5pm' },
+    { label: 'Mon–Fri 9am–6pm', value: 'Monday to Friday, 9am–6pm' },
+    { label: 'Mon–Sat 9am–5pm', value: 'Monday to Saturday, 9am–5pm' },
+    { label: 'Mon–Sat 9am–6pm', value: 'Monday to Saturday, 9am–6pm' },
+    { label: '7 days 8am–8pm', value: 'Seven days a week, 8am–8pm' },
+    { label: '24/7', value: '24 hours a day, 7 days a week' },
+    { label: 'Custom', value: 'custom' }
+  ];
+
+  // Build CRM options — sector-aware
+  var briefSector = (brief.sector || '').toLowerCase();
+  var briefSubsector = (brief.subsector || '').toLowerCase();
+  var crmOptions;
+  if (briefSector.includes('real estate') || briefSector.includes('letting') || briefSubsector.includes('letting') || briefSubsector.includes('residential')) {
+    crmOptions = ['None (V1)', 'Goodlord', 'Fixflo', 'Reapit', 'Jupix', 'Landmaster', 'Zoho CRM', 'Salesforce', 'Other'];
+  } else if (briefSector.includes('legal') || briefSubsector.includes('conveyancing') || briefSubsector.includes('solicitor')) {
+    crmOptions = ['None (V1)', 'Clio', 'Leap', 'ActionStep', 'Smokeball', 'Zoho CRM', 'HubSpot', 'Other'];
+  } else if (briefSector.includes('financial') || briefSector.includes('finance')) {
+    crmOptions = ['None (V1)', 'Salesforce Financial Services', 'HubSpot', 'Zoho CRM', 'Microsoft Dynamics', 'Other'];
+  } else if (briefSector.includes('health') || briefSubsector.includes('dental')) {
+    crmOptions = ['None (V1)', 'Dentally', 'SoftDent', 'Salesforce Health Cloud', 'Zoho CRM', 'Other'];
+  } else if (briefSector.includes('gambling') || briefSector.includes('betting')) {
+    crmOptions = ['None (V1)', 'Salesforce', 'Optimove', 'SAS', 'Zoho CRM', 'Other'];
+  } else {
+    crmOptions = ['None (V1)', 'Zoho CRM', 'Salesforce', 'HubSpot', 'Microsoft Dynamics', 'Pipedrive', 'Other'];
+  }
+
+  // Build locale options
+  var localeOptions = [
+    { label: '🇬🇧 UK (GBP, UK GDPR)', value: 'UK' },
+    { label: '🇮🇪 Ireland (EUR, EU GDPR)', value: 'Ireland' },
+    { label: '🇦🇺 Australia (AUD)', value: 'Australia' },
+    { label: '🇺🇸 USA (USD)', value: 'USA' },
+    { label: '🇪🇺 EU (EUR, EU GDPR)', value: 'EU' }
+  ];
+
+  var html = '<div class="qform-card" id="'+formId+'">';
+  html += '<div class="qform-header"><h4>⚡ Quick Setup — ' + esc(brief.sector || 'Your Business') + '</h4><p>Click to confirm — takes about 60 seconds</p></div>';
+  html += '<div class="qform-body">';
+
+  // FLOWS
+  html += '<div class="qform-section-title">V1 Flows — which are in scope?</div>';
+  html += '<div class="qform-flows" id="'+formId+'-flows">';
+  likelyFlows.forEach(function(flow, i) {
+    html += '<div class="qform-flow-item" id="'+formId+'-flow-'+i+'" onclick="qfToggleFlow(\''+formId+'\','+i+')">' +
+      '<input type="checkbox" id="'+formId+'-flowcb-'+i+'" onchange="qfToggleFlow(\''+formId+'\','+i+')">' +
+      '<label for="'+formId+'-flowcb-'+i+'">'+esc(flow)+'</label>' +
+      '</div>';
+  });
+  html += '</div>';
+
+  html += '<div class="qform-divider"></div>';
+
+  // HOURS
+  html += '<div class="qform-row"><div class="qform-label">Operating Hours <span class="qform-assumed">— assumed Mon–Fri 9am–6pm</span></div>';
+  html += '<div class="qform-pills" id="'+formId+'-hours">';
+  hoursOptions.forEach(function(o, i) {
+    var sel = (i === 1) ? ' selected' : '';
+    html += '<div class="qform-pill'+sel+'" onclick="qfPillSingle(\''+formId+'-hours\',this)" data-value="'+esc(o.value)+'">'+esc(o.label)+'</div>';
+  });
+  html += '</div>';
+  html += '<input class="qform-input" id="'+formId+'-hours-custom" style="display:none;margin-top:6px;" placeholder="e.g. Mon–Thu 8am–7pm, Fri 8am–5pm, Sat 9am–1pm">';
+  html += '</div>';
+
+  // AUDIENCE — sector-aware options
+  var audienceOptions = ['All inbound enquiries', 'Customers only', 'B2B only', 'Customers + Partners'];
+  var sector = (brief.sector || '').toLowerCase();
+  var subsector = (brief.subsector || '').toLowerCase();
+  if (sector.includes('real estate') || sector.includes('letting') || subsector.includes('letting') || subsector.includes('residential')) {
+    audienceOptions = ['Tenants only', 'Landlords only', 'Tenants + Landlords', 'All enquiries'];
+  } else if (sector.includes('legal') || sector.includes('law') || subsector.includes('conveyancing') || subsector.includes('solicitor')) {
+    audienceOptions = ['Clients only', 'New enquiries only', 'Clients + New enquiries', 'All contacts'];
+  } else if (sector.includes('financial') || sector.includes('finance') || sector.includes('insurance')) {
+    audienceOptions = ['Retail customers', 'Business customers', 'Both', 'New enquiries only'];
+  } else if (sector.includes('health') || sector.includes('dental') || sector.includes('medical')) {
+    audienceOptions = ['Patients only', 'New patients only', 'Patients + Referrals', 'All contacts'];
+  } else if (sector.includes('retail') || sector.includes('ecommerce')) {
+    audienceOptions = ['Customers only', 'Trade customers', 'Customers + Trade', 'All enquiries'];
+  } else if (sector.includes('gambling') || sector.includes('betting') || sector.includes('gaming')) {
+    audienceOptions = ['Registered players', 'New sign-ups', 'All users', 'VIP players'];
+  } else if (sector.includes('hospitality') || sector.includes('hotel') || sector.includes('restaurant')) {
+    audienceOptions = ['Guests only', 'New bookings', 'Guests + Enquiries', 'All contacts'];
+  }
+  html += '<div class="qform-row"><div class="qform-label">Who does V1 serve?</div>';
+  html += '<div class="qform-pills" id="'+formId+'-audience">';
+  audienceOptions.forEach(function(a, i) {
+    var sel = (i === 0) ? ' selected' : '';
+    html += '<div class="qform-pill'+sel+'" onclick="qfPillSingle(\''+formId+'-audience\',this)" data-value="'+esc(a)+'">'+esc(a)+'</div>';
+  });
+  html += '</div></div>';
+
+  // CHANNEL
+  html += '<div class="qform-row"><div class="qform-label">Channel</div>';
+  html += '<div class="qform-pills" id="'+formId+'-channel">';
+  ['WhatsApp', 'Voice', 'WhatsApp + Voice'].forEach(function(c, i) {
+    var sel = (i === 0) ? ' selected' : '';
+    html += '<div class="qform-pill'+sel+'" onclick="qfPillSingle(\''+formId+'-channel\',this)" data-value="'+esc(c)+'">'+esc(c)+'</div>';
+  });
+  html += '</div></div>';
+
+  // LOCALE
+  html += '<div class="qform-row"><div class="qform-label">Locale <span class="qform-assumed">— assumed UK</span></div>';
+  html += '<div class="qform-pills" id="'+formId+'-locale">';
+  localeOptions.forEach(function(o, i) {
+    var sel = (i === 0) ? ' selected' : '';
+    html += '<div class="qform-pill'+sel+'" onclick="qfPillSingle(\''+formId+'-locale\',this)" data-value="'+esc(o.value)+'">'+esc(o.label)+'</div>';
+  });
+  html += '</div></div>';
+
+  // CRM
+  html += '<div class="qform-row"><div class="qform-label">CRM / Property Software <span class="qform-assumed">— assumed None for V1</span></div>';
+  html += '<select class="qform-select" id="'+formId+'-crm">';
+  crmOptions.forEach(function(c){ html += '<option value="'+esc(c)+'">'+esc(c)+'</option>'; });
+  html += '</select></div>';
+
+  // LEAD SCORING BANDS
+  html += '<div class="qform-row"><div class="qform-label">Lead Scoring Sensitivity</div>';
+  html += '<div class="qform-pills" id="'+formId+'-scoring">';
+  [
+    { label: 'Conservative (Hot 40+)', value: 'conservative', hot: '40+', warm: '20–39', std: '0–19' },
+    { label: 'Standard (Hot 30+)', value: 'standard', hot: '30+', warm: '15–29', std: '0–14' },
+    { label: 'Aggressive (Hot 20+)', value: 'aggressive', hot: '20+', warm: '10–19', std: '0–9' }
+  ].forEach(function(s, i) {
+    var sel = (i === 1) ? ' selected' : '';
+    html += '<div class="qform-pill'+sel+'" onclick="qfPillSingle(\''+formId+'-scoring\',this)" data-value="'+esc(JSON.stringify(s))+'">'+esc(s.label)+'</div>';
+  });
+  html += '</div></div>';
+
+  // WABA
+  html += '<div class="qform-row"><div class="qform-label">WhatsApp Business Number (WABA) <span class="qform-assumed">— leave blank if not yet confirmed</span></div>';
+  html += '<input class="qform-input" id="'+formId+'-waba" placeholder="+44 7700 000000 or leave blank"></div>';
+
+  // LOCATION
+  html += '<div class="qform-row"><div class="qform-label">Primary Location Name</div>';
+  html += '<input class="qform-input" id="'+formId+'-loc1" placeholder="e.g. Manchester"></div>';
+
+  html += '</div>'; // end qform-body
+
+  html += '<div class="qform-footer"><span class="qform-footer-note">You can change any of this later in the conversation.</span>';
+  html += '<button class="qform-submit" onclick="submitQuickForm(\''+formId+'\','+JSON.stringify(researchContext).replace(/'/g,"\\'")+')">Confirm &amp; Continue →</button>';
+  html += '</div>';
+  html += '</div>'; // end qform-card
+
+  var container = document.createElement('div');
+  container.innerHTML = html;
+  wrap.appendChild(av);
+  wrap.appendChild(container.firstChild);
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  // Store brief and context on the form element for submission
+  var formEl = document.getElementById(formId);
+  if (formEl) {
+    formEl._brief = brief;
+    formEl._researchContext = researchContext;
+    formEl._originalText = originalText;
+  }
+}
+
+function qfPillSingle(groupId, el) {
+  var group = document.getElementById(groupId);
+  if (!group) return;
+  group.querySelectorAll('.qform-pill').forEach(function(p){ p.classList.remove('selected'); });
+  el.classList.add('selected');
+  // Show/hide custom hours input
+  if (groupId.indexOf('-hours') !== -1) {
+    var formId = groupId.replace('-hours','');
+    var customInput = document.getElementById(formId+'-hours-custom');
+    if (customInput) customInput.style.display = el.dataset.value === 'custom' ? 'block' : 'none';
+  }
+}
+
+function qfToggleFlow(formId, idx) {
+  var item = document.getElementById(formId+'-flow-'+idx);
+  var cb = document.getElementById(formId+'-flowcb-'+idx);
+  if (!item || !cb) return;
+  cb.checked = !cb.checked;
+  item.classList.toggle('selected', cb.checked);
+}
+
+function submitQuickForm(formId, researchContext) {
+  var formEl = document.getElementById(formId);
+  if (!formEl) return;
+  var brief = formEl._brief || {};
+  var originalText = formEl._originalText || '';
+
+  // Collect selections
+  function getSelectedPill(groupId) {
+    var group = document.getElementById(groupId);
+    if (!group) return '';
+    var sel = group.querySelector('.qform-pill.selected');
+    return sel ? sel.dataset.value : '';
+  }
+
+  // Flows
+  var selectedFlows = [];
+  (brief.likelyFlows||[]).forEach(function(flow, i) {
+    var cb = document.getElementById(formId+'-flowcb-'+i);
+    if (cb && cb.checked) selectedFlows.push(flow);
+  });
+
+  var hoursVal = getSelectedPill(formId+'-hours');
+  if (hoursVal === 'custom') {
+    hoursVal = document.getElementById(formId+'-hours-custom').value.trim() || 'Custom — TBC';
+  }
+
+  var scoringRaw = getSelectedPill(formId+'-scoring');
+  var scoring = {};
+  try { scoring = JSON.parse(scoringRaw); } catch(e) { scoring = { hot: '30+', warm: '15–29', std: '0–14' }; }
+
+  var audience = getSelectedPill(formId+'-audience');
+  var channel = getSelectedPill(formId+'-channel');
+  var locale = getSelectedPill(formId+'-locale');
+  var crm = document.getElementById(formId+'-crm') ? document.getElementById(formId+'-crm').value : 'None (V1)';
+  var waba = document.getElementById(formId+'-waba') ? document.getElementById(formId+'-waba').value.trim() : '';
+  var loc1 = document.getElementById(formId+'-loc1') ? document.getElementById(formId+'-loc1').value.trim() : '';
+
+  // Disable the form
+  formEl.style.opacity = '0.5';
+  formEl.style.pointerEvents = 'none';
+  var submitBtn = formEl.querySelector('.qform-submit');
+  if (submitBtn) submitBtn.textContent = '✓ Confirmed';
+
+  // Build the structured context message to send to Ella
+  var formSummary = [
+    '=== CONFIRMED SETUP (user selected via form — treat these as confirmed, not assumptions) ===',
+    'Active V1 flows: ' + (selectedFlows.length ? selectedFlows.join(', ') : 'None selected — ask which flows to include'),
+    'Operating hours: ' + (hoursVal || 'TBC'),
+    'Audience scope: ' + (audience || 'TBC'),
+    'Channel: ' + (channel || 'WhatsApp'),
+    'Locale: ' + (locale || 'UK'),
+    'CRM: ' + (crm || 'None (V1)'),
+    'WABA: ' + (waba || 'Not yet provided'),
+    'Primary location: ' + (loc1 || 'Not specified'),
+    'Lead scoring bands: Hot ' + scoring.hot + ', Warm ' + scoring.warm + ', Standard ' + scoring.std,
+    '',
+    'Now skip all questions about the above — they are confirmed. Focus your questioning on:',
+    '1. For each active flow: the step-by-step conversation script, branching logic, escalation triggers, success outcome, closing line.',
+    '2. Tone: warmth, formality, prohibited words, opening example.',
+    '3. Sector and client-specific rules beyond the defaults.',
+    '4. GDPR: privacy policy URL, consent statement, any special category data.',
+    '5. Anything else needed to generate a production-ready output.',
+    '',
+    '=== BACKGROUND RESEARCH ===',
+    researchContext || ''
+  ].join('\n');
+
+  // Show user bubble summarising what they selected
+  var summary = '✅ Confirmed:\n' +
+    (selectedFlows.length ? '**Flows:** ' + selectedFlows.join(', ') + '\n' : '') +
+    '**Hours:** ' + (hoursVal || 'TBC') + '\n' +
+    '**Audience:** ' + (audience || 'TBC') + '\n' +
+    '**Channel:** ' + (channel || 'WhatsApp') + '\n' +
+    '**Locale:** ' + (locale || 'UK') + '\n' +
+    '**CRM:** ' + (crm || 'None') + '\n' +
+    (waba ? '**WABA:** ' + waba + '\n' : '') +
+    (loc1 ? '**Location:** ' + loc1 + '\n' : '') +
+    '**Scoring:** Hot ' + scoring.hot + ', Warm ' + scoring.warm + ', Std ' + scoring.std;
+
+  addMessage('user', summary);
+  dispatchMessage(summary, formSummary);
+}
+
+function dispatchMessage(displayText, enrichedText) {
+  // Build API content blocks — enriched text goes to API only, never stored in history
+  var apiContentBlocks = [];
+  pendingAttachments.forEach(function(att) {
+    if (att.type === 'image') {
+      apiContentBlocks.push({ type: 'image', source: { type: 'base64', media_type: att.mimeType, data: att.dataUrl.split(',')[1] } });
+    } else if (att.textContent) {
+      apiContentBlocks.push({ type: 'text', text: '[Attached document: ' + att.name + ']\n\n' + att.textContent });
+    }
+  });
+  var apiText = enrichedText || displayText;
+  apiContentBlocks.push({ type: 'text', text: apiText });
+
+  // Show user message with attachment previews
+  var msgDisplayText = displayText || (pendingAttachments.length + ' file' + (pendingAttachments.length > 1 ? 's' : '') + ' attached');
+  var attachmentHtml = pendingAttachments.map(function(att) {
+    if (att.type === 'image') return '<div class="msg-attachment"><img src="' + att.dataUrl + '" alt="' + esc(att.name) + '"></div>';
+    return '<div class="msg-attachment"><div class="doc-chip">📄 ' + esc(att.name) + '</div></div>';
+  }).join('');
+  addMessageRich('user', msgDisplayText, attachmentHtml);
+
+  // Store ONLY the clean display text in history — never the enriched/research context
+  var historyContent = pendingAttachments.length > 0
+    ? apiContentBlocks  // keep image blocks in history, they're needed for context
+    : displayText;
+  chatHistory.push({ role: 'user', content: historyContent });
+
+  // Pass the full enriched blocks to Claude just this once via a one-off override
+  window._pendingApiBlocks = apiContentBlocks;
+
+  clearAttachments();
+  showTyping();
+  callClaude();
+}
+
+function addMessage(role, text) {
+  return addMessageRich(role, text, '');
+}
+
+function addMessageRich(role, text, extraHtml) {
+  var msgs = document.getElementById('messages');
+  var div  = document.createElement('div');
+  div.className = 'msg ' + role;
+  var av = document.createElement('div');
+  av.className = 'avatar';
+  av.textContent = role === 'assistant' ? 'E' : 'C';
+  var bub = document.createElement('div');
+  bub.className = 'bubble';
+  if (text) bub.innerHTML = fmt(text);
+  if (extraHtml) bub.innerHTML += extraHtml;
+  div.appendChild(av); div.appendChild(bub);
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function fmt(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+}
+
+function showTyping() {
+  var msgs = document.getElementById('messages');
+  var div  = document.createElement('div');
+  div.className = 'msg assistant'; div.id = 'typing-msg';
+  div.innerHTML = '<div class="avatar">E</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  msgs.appendChild(div); msgs.scrollTop = msgs.scrollHeight;
+}
+function removeTyping() { var t = document.getElementById('typing-msg'); if (t) t.remove(); }
+
+// ── API CALL ──────────────────────────────────────────────────────────────────
+
+function callClaude() {
+  var systemPrompt = SYSTEM;
+  if (editMode && currentAgentData) {
+    systemPrompt = EDIT_SYSTEM_PREFIX.replace('CURRENT_DATA_PLACEHOLDER', JSON.stringify(currentAgentData, null, 2));
+  }
+  // Use full system prompt for edit mode (needs JSON schema awareness) but lean prompt for conversation
+
+  // Trim history to avoid context overflow
+  var trimmedHistory = chatHistory;
+
+  // After 2 messages, strip the research context from the first message — Ella has absorbed it by then
+  if (chatHistory.length > 2 && chatHistory[0] && typeof chatHistory[0].content === 'string') {
+    var firstMsg = chatHistory[0].content;
+    var researchMarker = '\n\n[BACKGROUND RESEARCH';
+    var confirmedMarker = '\n\n=== CONFIRMED SETUP';
+    var cutoff = firstMsg.indexOf(researchMarker);
+    if (cutoff === -1) cutoff = firstMsg.indexOf(confirmedMarker);
+    if (cutoff !== -1) {
+      trimmedHistory = [{ role: chatHistory[0].role, content: firstMsg.slice(0, cutoff) }].concat(chatHistory.slice(1));
+    }
+  }
+
+  // Keep last 16 messages if conversation is long
+  if (trimmedHistory.length > 16) {
+    trimmedHistory = trimmedHistory.slice(-16);
+  }
+
+  // Replace the last user message with the full enriched API blocks if available (research context, form data)
+  if (window._pendingApiBlocks && trimmedHistory.length > 0) {
+    var last = trimmedHistory[trimmedHistory.length - 1];
+    if (last.role === 'user') {
+      trimmedHistory = trimmedHistory.slice(0, -1).concat([{ role: 'user', content: window._pendingApiBlocks }]);
+    }
+    window._pendingApiBlocks = null;
+  }
+
+  // Hard cap any single message at 6000 chars
+  trimmedHistory = trimmedHistory.map(function(msg) {
+    if (typeof msg.content === 'string' && msg.content.length > 6000) {
+      return { role: msg.role, content: msg.content.slice(0, 6000) + '\n[truncated]' };
+    }
+    if (Array.isArray(msg.content)) {
+      return {
+        role: msg.role,
+        content: msg.content.map(function(block) {
+          if (block.type === 'text' && block.text && block.text.length > 6000) {
+            return { type: 'text', text: block.text.slice(0, 6000) + '\n[truncated]' };
+          }
+          return block;
+        })
+      };
+    }
+    return msg;
+  });
+
+  // Detect if this is likely a generation turn (last user message triggers generate)
+  var lastUserMsg = '';
+  for (var mi = trimmedHistory.length - 1; mi >= 0; mi--) {
+    if (trimmedHistory[mi].role === 'user') {
+      lastUserMsg = typeof trimmedHistory[mi].content === 'string'
+        ? trimmedHistory[mi].content
+        : (Array.isArray(trimmedHistory[mi].content) ? trimmedHistory[mi].content.map(function(b){ return b.text||''; }).join(' ') : '');
+      break;
+    }
+  }
+  var isGenerateTurn = lastUserMsg.toLowerCase().indexOf('generate') !== -1
+    || lastUserMsg.toLowerCase().indexOf('assumptions') !== -1
+    || lastUserMsg.toLowerCase().indexOf('make it up') !== -1;
+
+  // For generation turns: use full system prompt with JSON schema, allow 4096 tokens
+  // For conversational turns: use lean system prompt, cap at 800 tokens (questions need ~200-400 tokens)
+  var effectiveSystem = systemPrompt; // already set above (lean SYSTEM or EDIT_SYSTEM_PREFIX)
+  var maxTokens = 800;
+
+  if (isGenerateTurn && !editMode) {
+    maxTokens = 2000;
+    effectiveSystem = SYSTEM_FULL;
+  } else if (isGenerateTurn && editMode) {
+    maxTokens = 2000;
+    // Edit mode already uses EDIT_SYSTEM_PREFIX which includes JSON schema
+  }
+
+  fetch('/.netlify/functions/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages: trimmedHistory, system: effectiveSystem, apiKey: API_KEY, maxTokens: maxTokens })
+  })
+  .then(function(r){
+    var ct = r.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      return r.text().then(function(t){ throw new Error('Server error (' + r.status + '). Check Netlify deploy logs.'); });
+    }
+    return r.json();
+  })
+  .then(function(data) {
+    removeTyping();
+    document.getElementById('send-btn').disabled = false;
+    if (data.error) { addMessage('assistant', 'API error: ' + (data.error.message || data.error.type || JSON.stringify(data.error))); return; }
+    var reply = data.content && data.content[0] ? data.content[0].text : '';
+    chatHistory.push({ role: 'assistant', content: reply });
+    if (reply.indexOf('READY_TO_GENERATE') !== -1) {
+      handleGenerate(reply);
+    } else if (!isGenerateTurn) {
+      // Check if Ella decided to generate unprompted (she might if she has enough info)
+      addMessage('assistant', reply);
+    } else {
+      // Generate was triggered but reply doesn't have READY_TO_GENERATE — Ella still asking questions
+      // Try a direct generation nudge
+      addMessage('assistant', reply);
+    }
+  })
+  .catch(function(e) {
+    removeTyping();
+    document.getElementById('send-btn').disabled = false;
+    addMessage('assistant', 'Connection error: ' + e.message);
+  });
+}
+
+// ── GENERATE OUTPUT ───────────────────────────────────────────────────────────
+
+function handleGenerate(reply) {
+  var pre = reply.slice(0, reply.indexOf('READY_TO_GENERATE')).trim();
+  if (pre) addMessage('assistant', pre);
+
+  // Robust JSON extraction — handles newline+{, same-line {, or ```json blocks
+  var d = {};
+  try {
+    // Strip markdown code fences if present
+    var stripped = reply.replace(/```json\s*/gi, '').replace(/```\s*/g, '');
+    // Find the first { after READY_TO_GENERATE
+    var after = stripped.slice(stripped.indexOf('READY_TO_GENERATE') + 'READY_TO_GENERATE'.length);
+    var jsonStart = after.indexOf('{');
+    var jsonEnd = after.lastIndexOf('}');
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      d = JSON.parse(after.slice(jsonStart, jsonEnd + 1));
+    } else {
+      d = currentAgentData || {};
+    }
+  } catch(e) {
+    console.warn('JSON parse failed:', e);
+    d = currentAgentData || {};
+  }
+
+  var isEdit = editMode && currentAgentId;
+  var changelog = [];
+
+  if (isEdit) {
+    var agents = getSavedAgents();
+    var existing = agents.find(function(a){ return a.id === currentAgentId; });
+    changelog = existing ? (existing.changelog || []) : [];
+    var changeNote = extractChangeNote();
+    changelog.unshift({ time: new Date().toLocaleString('en-GB'), note: changeNote });
+    updateSavedAgent(currentAgentId, d, changelog);
+  } else {
+    currentAgentId = 'agent_' + Date.now();
+    currentAgentData = d;
+    editMode = true;
+    saveAgent(currentAgentId, d, changelog);
+    document.getElementById('edit-banner-text').textContent = '✏️ Editing: ' + (d.clientName || 'Agent') + ' — describe any changes below.';
+    document.getElementById('edit-banner').classList.add('show');
+  }
+
+  currentAgentData = d;
+  var prompt = buildPrompt(d);
+  var spec   = buildSpec(d);
+  addOutputCard(d, prompt, spec, changelog);
+  renderSidebar(currentAgentId);
+  addMessage('assistant', isEdit
+    ? 'Done — outputs updated above. The change has been logged. Copy the **System Prompt** tab and paste it into VeycoChat.'
+    : 'Both outputs are ready above. Copy the **System Prompt** tab and paste it directly into VeycoChat. The **Agent Spec** tab is your client-facing document.\n\nYou can continue chatting to refine anything — changes will update the outputs automatically.');
+}
+
+function extractChangeNote() {
+  for (var i = chatHistory.length - 1; i >= 0; i--) {
+    if (chatHistory[i].role === 'user') return chatHistory[i].content.slice(0, 120);
+  }
+  return 'Manual update';
+}
+
+// ── OUTPUT CARD ───────────────────────────────────────────────────────────────
+
+function addOutputCard(d, prompt, spec, changelog) {
+  var msgs = document.getElementById('messages');
+  var uid  = 'oc' + Date.now();
+  var wrap = document.createElement('div');
+  wrap.className = 'msg assistant'; wrap.style.width = '100%'; wrap.style.maxWidth = '680px';
+  var av = document.createElement('div'); av.className = 'avatar'; av.textContent = 'E';
+  var card = document.createElement('div'); card.className = 'output-card'; card.id = uid+'-card';
+  card._prompt = prompt; card._spec = spec; card._active = 0; card._agentData = d;
+
+  var clHtml = '';
+  if (changelog && changelog.length > 0) {
+    clHtml = '<div class="changelog show" id="'+uid+'-cl"><h5>Change Log</h5>';
+    changelog.forEach(function(c){
+      clHtml += '<div class="changelog-entry"><span class="cl-time">'+esc(c.time)+'</span>'+esc(c.note)+'</div>';
+    });
+    clHtml += '</div>';
+  }
+
+  var hasAssumptions = d.assumptions && d.assumptions.length > 0 && d.assumptions[0].field;
+  var hasIntegrations = d.suggestedIntegrations && d.suggestedIntegrations.length > 0 && d.suggestedIntegrations[0].name;
+  var hasChangelog = changelog && changelog.length > 0;
+  var confidence = calcConfidence(d);
+  var assumptionCount = (d.assumptions || []).filter(function(a){ return a.field; }).length;
+  var confClass = confidence >= 80 ? 'high' : confidence >= 50 ? 'mid' : 'low';
+  var confNote = confidence >= 80 && assumptionCount < 3
+    ? 'Strong — ready to deploy'
+    : confidence >= 80 && assumptionCount >= 3
+    ? '⚠ High score but ' + assumptionCount + ' assumptions — review before deploying'
+    : confidence >= 50
+    ? 'Draft — ' + assumptionCount + ' assumptions need confirming before go-live'
+    : '🔴 First draft — built on assumptions. Use edit mode to fill the gaps.';
+  var tabIdx = 2;
+  var integrationsTabIdx = hasIntegrations ? tabIdx++ : -1;
+  var assumptionsTabIdx = hasAssumptions ? tabIdx++ : -1;
+  var changelogTabIdx = hasChangelog ? tabIdx++ : -1;
+
+  card.innerHTML =
+    '<div class="output-card-header"><h4>✨ ' + esc(d.clientName||'Agent') + ' — Ready</h4><p>' + esc(d.sector||'') + (d.flows && d.flows.length ? ' · ' + d.flows.join(', ') : '') + '</p></div>' +
+    '<div class="confidence-bar-wrap">' +
+      '<div class="confidence-top"><span class="confidence-label">Confidence Score</span><span class="confidence-pct '+confClass+'">'+confidence+'%</span></div>' +
+      '<div class="confidence-bar"><div class="confidence-fill '+confClass+'" style="width:'+confidence+'%"></div></div>' +
+      '<div class="confidence-note">'+confNote+'</div>' +
+    '</div>' +
+    '<div class="output-tabs-mini">' +
+      '<div class="otab active" onclick="switchOTab(\''+uid+'\',0,this)">💬 System Prompt</div>' +
+      '<div class="otab" onclick="switchOTab(\''+uid+'\',1,this)">📋 Agent Spec</div>' +
+      (hasIntegrations ? '<div class="otab" onclick="switchOTab(\''+uid+'\','+integrationsTabIdx+',this)">🔌 Integrations ('+d.suggestedIntegrations.length+')</div>' : '') +
+      (hasAssumptions ? '<div class="otab" onclick="switchOTab(\''+uid+'\','+assumptionsTabIdx+',this)">⚠️ Assumptions ('+d.assumptions.length+')</div>' : '') +
+      (hasChangelog ? '<div class="otab" onclick="switchOTab(\''+uid+'\','+changelogTabIdx+',this)">🕒 Changes</div>' : '') +
+    '</div>' +
+    '<div class="output-body active" id="'+uid+'-0">'+esc(prompt)+'</div>' +
+    '<div class="output-body" id="'+uid+'-1">'+esc(spec)+'</div>' +
+    (hasIntegrations ? '<div class="output-body" id="'+uid+'-'+integrationsTabIdx+'" style="font-family:inherit;font-size:13px;">'+integrationsHtml(d)+'</div>' : '') +
+    (hasAssumptions ? '<div class="output-body" id="'+uid+'-'+assumptionsTabIdx+'" style="font-family:inherit;font-size:13px;">'+assumptionsHtml(d.assumptions)+'</div>' : '') +
+    (hasChangelog ? '<div class="output-body" id="'+uid+'-'+changelogTabIdx+'" style="font-family:inherit;font-size:13px;">'+changelogHtml(changelog)+'</div>' : '') +
+    '<div class="output-actions">' +
+      '<button class="oa-btn oa-copy" onclick="copyOut(\''+uid+'\')">📋 Copy</button>' +
+      '<button class="oa-btn oa-dl" onclick="dlOut(\''+uid+'\',\''+esc(d.clientName||'ella')+'\')">⬇ Download</button>' +
+      '<button class="oa-btn" style="background:linear-gradient(135deg,#4CAF82,#2e8b57);color:white;" onclick="dlProposal(\''+uid+'\')">📄 Client Proposal</button>' +
+      '<button class="oa-btn oa-edit" onclick="openChecklist(\''+uid+'\')">✅ Pre-Deploy Checklist</button>' +
+    '</div>';
+
+  wrap.appendChild(av); wrap.appendChild(card);
+  msgs.appendChild(wrap); msgs.scrollTop = msgs.scrollHeight;
+}
+
+function changelogHtml(changelog) {
+  if (!changelog || changelog.length === 0) return '<em>No changes logged yet.</em>';
+  return changelog.map(function(c){
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--grey-200);"><strong>'+esc(c.time)+'</strong><br>'+esc(c.note)+'</div>';
+  }).join('');
+}
+
+function assumptionsHtml(assumptions) {
+  if (!assumptions || assumptions.length === 0 || !assumptions[0].field) return '<em>No assumptions logged.</em>';
+  var html = '<div style="margin-bottom:12px;padding:10px 12px;background:#FFF8E8;border:1.5px solid #C9963B;border-radius:8px;font-size:12px;color:#7A5500;">These fields were inferred or defaulted — confirm each before going live.</div>';
+  html += assumptions.map(function(a){
+    return '<div style="padding:10px 0;border-bottom:1px solid var(--grey-200);">' +
+      '<div style="font-weight:700;font-size:13px;color:var(--dark);">'+esc(a.field)+'</div>' +
+      '<div style="font-size:12px;color:var(--grey-600);margin-top:3px;">Assumed: '+esc(a.assumed)+'</div>' +
+      '<div style="font-size:11px;color:#C9963B;margin-top:2px;font-weight:600;">⚠ '+esc(a.flag||'Needs confirmation')+'</div>' +
+      '</div>';
+  }).join('');
+  return html;
+}
+
+function integrationsHtml(d) {
+  var integrations = d.suggestedIntegrations || [];
+  if (!integrations.length || !integrations[0].name) return '<em>No integrations suggested yet.</em>';
+  var cats = {};
+  integrations.forEach(function(i) {
+    var cat = i.category || 'Other';
+    if (!cats[cat]) cats[cat] = [];
+    cats[cat].push(i);
+  });
+  var html = '<div style="margin-bottom:12px;padding:10px 12px;background:#EDE8F8;border:1.5px solid #7C5CBF;border-radius:8px;font-size:12px;color:#5A3E9B;">These integrations are recommended based on sector and flows. None are included in V1 unless marked — they are the roadmap for V2 and beyond.</div>';
+  if (d.salesBrief) {
+    html += '<div style="margin-bottom:16px;padding:12px 14px;background:#F0FBF5;border:1.5px solid #4CAF82;border-radius:8px;font-size:13px;color:var(--dark);line-height:1.6;"><strong style="display:block;margin-bottom:6px;color:#2e8b57;">💼 Commercial case</strong>' + esc(d.salesBrief) + '</div>';
+  }
+  if (d.estimatedTimeSaving) {
+    html += '<div style="margin-bottom:16px;padding:8px 12px;background:#FFF8E8;border-radius:8px;font-size:12px;color:#7A5500;"><strong>⏱ Estimated time saving:</strong> ' + esc(d.estimatedTimeSaving) + '</div>';
+  }
+  Object.keys(cats).forEach(function(cat) {
+    html += '<div style="font-weight:700;font-size:11px;letter-spacing:0.5px;text-transform:uppercase;color:var(--grey-600);margin:14px 0 6px;">'+esc(cat)+'</div>';
+    cats[cat].forEach(function(i) {
+      var v1badge = i.v1 === 'yes'
+        ? '<span style="background:#4CAF82;color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px;">V1</span>'
+        : '<span style="background:var(--grey-200);color:var(--grey-600);font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px;">V2+</span>';
+      html += '<div style="padding:10px 0;border-bottom:1px solid var(--grey-200);">' +
+        '<div style="font-weight:700;font-size:13px;color:var(--dark);">'+esc(i.name)+v1badge+'</div>' +
+        '<div style="font-size:12px;color:var(--grey-600);margin-top:3px;">'+esc(i.purpose)+'</div>' +
+        (i.why ? '<div style="font-size:11px;color:var(--purple);margin-top:2px;">'+esc(i.why)+'</div>' : '') +
+        '</div>';
+    });
+  });
+  if (d.v2Flows && d.v2Flows.length) {
+    html += '<div style="margin-top:16px;padding:10px 12px;background:var(--grey-100);border-radius:8px;font-size:12px;color:var(--grey-600);"><strong>V2 flows already scoped:</strong> '+esc(d.v2Flows.join(', '))+'</div>';
+  }
+  return html;
+}
+
+function switchOTab(uid, n, el) {
+  var card = document.getElementById(uid+'-card'); if (card) card._active = n;
+  el.closest('.output-tabs-mini').querySelectorAll('.otab').forEach(function(t,i){ t.classList.toggle('active',i===n); });
+  [0,1,2,3,4].forEach(function(i){
+    var el2 = document.getElementById(uid+'-'+i);
+    if (el2) el2.classList.toggle('active', i===n);
+  });
+}
+
+function dlProposal(uid) {
+  var card = document.getElementById(uid+'-card');
+  if (!card || !card._agentData) { alert('No agent data available.'); return; }
+  var text = buildClientProposal(card._agentData);
+  var name = (card._agentData.clientName || 'client').toLowerCase().replace(/\s+/g,'-');
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text],{type:'text/plain'}));
+  a.download = name + '-ella-ai-proposal.txt';
+  a.click();
+}
+
+function buildClientProposal(d) {
+  var integrations = (d.suggestedIntegrations||[]).filter(function(i){ return i.name; });
+  var v2Integrations = integrations.filter(function(i){ return i.v1 !== 'yes'; });
+  var v1Integrations = integrations.filter(function(i){ return i.v1 === 'yes'; });
+  var lines = [
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'ELLA AI — AGENT PROPOSAL',
+(d.clientName || 'Client').toUpperCase(),
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'',
+'Prepared by:   Ella AI (powered by VeycoChat)',
+'Date:          ' + new Date().toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'}),
+'Status:        Draft — for client review',
+'',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'1.  OVERVIEW',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'',
+d.salesBrief || ('This document outlines the AI WhatsApp agent being built for ' + (d.clientName||'your business') + '.'),
+'',
+d.estimatedTimeSaving ? ('Estimated time saving:  ' + d.estimatedTimeSaving) : '',
+'',
+];
+
+  if (d.keyPainPoints && d.keyPainPoints.length) {
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('2.  WHAT THIS SOLVES');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('');
+    d.keyPainPoints.forEach(function(p,i){ lines.push('  ' + (i+1) + '.  ' + p); });
+    lines.push('');
+  }
+
+  lines = lines.concat([
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'3.  YOUR AGENT — AT A GLANCE',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'',
+'    Agent name:    ' + (d.agentName||'Ella'),
+'    Channel:       ' + (d.channel||'WhatsApp'),
+'    Sector:        ' + (d.sector||'—') + (d.subsector ? ' — ' + d.subsector : ''),
+'    V1 flows:      ' + (d.flows||[]).join(', '),
+'',
+d.objective ? ('    Objective:     ' + d.objective) : '',
+'',
+]);
+
+  if (d.flows && d.flows.length) {
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('4.  CONVERSATION FLOWS (V1)');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('');
+    (d.flowSteps||[]).filter(function(fs){ return fs.flow; }).forEach(function(fs) {
+      lines.push('  ' + fs.flow.toUpperCase());
+      if (fs.opening) lines.push('  Opening:   ' + fs.opening);
+      if (fs.successOutcome) lines.push('  Success:   ' + fs.successOutcome);
+      if (fs.escalationTrigger) lines.push('  Escalates: ' + fs.escalationTrigger);
+      lines.push('');
+    });
+  }
+
+  lines = lines.concat([
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'5.  DATA COLLECTED',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'',
+]);
+  (d.fields||[]).forEach(function(f){ lines.push('  - ' + (typeof f === 'string' ? f : (f.field||f.name||JSON.stringify(f)))); });
+  lines.push('');
+
+  lines = lines.concat([
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'6.  DATA PRIVACY',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'',
+'    Regime:          ' + (d.gdprRegime||'UK GDPR'),
+'    Lawful basis:    ' + (d.lawfulBasis||'Legitimate interests'),
+'    Retention:       ' + (d.dataRetention||'90 days'),
+d.privacyPolicyUrl ? ('    Privacy policy:  ' + d.privacyPolicyUrl) : '',
+'',
+]);
+
+  if (v1Integrations.length || v2Integrations.length) {
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('7.  INTEGRATIONS ROADMAP');
+    lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    lines.push('');
+    if (v1Integrations.length) {
+      lines.push('  V1 (included):');
+      v1Integrations.forEach(function(i){ lines.push('  - ' + i.name + ': ' + i.purpose); });
+      lines.push('');
+    }
+    lines.push('  V2 and beyond (recommended next steps):');
+    v2Integrations.forEach(function(i){ lines.push('  - ' + i.name + ' [' + (i.category||'') + ']: ' + i.purpose); });
+    lines.push('');
+  }
+
+  if (d.outOfScope) {
+    lines = lines.concat([
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'8.  OUT OF SCOPE — V1',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'',
+'    ' + d.outOfScope,
+'',
+    ]);
+  }
+
+  if (d.v2Flows && d.v2Flows.length) {
+    lines.push('    V2 flows already scoped:  ' + d.v2Flows.join(', '));
+    lines.push('');
+  }
+
+  lines = lines.concat([
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'9.  NEXT STEPS',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'',
+'  1.  Review this proposal and confirm or amend any details.',
+'  2.  Provide your WhatsApp Business Account (WABA) number.',
+'  3.  Confirm escalation email address and operating hours.',
+'  4.  Review and sign off the data privacy statement.',
+'  5.  Go live.',
+'',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'Ella AI is powered by VeycoChat.',
+'For queries about this proposal, please get in touch.',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+  ]);
+
+  return lines.filter(function(l){ return l !== null && l !== undefined; }).join('\n');
+}
+
+function copyOut(uid) {
+  var card = document.getElementById(uid+'-card');
+  var text = card._active === 0 ? card._prompt : card._spec;
+  navigator.clipboard.writeText(text).then(function(){
+    var btn = document.querySelector('#'+uid+'-card .oa-copy');
+    if (btn) { btn.textContent='✓ Copied!'; setTimeout(function(){ btn.textContent='📋 Copy'; },2000); }
+  });
+}
+
+function dlOut(uid, name) {
+  var card = document.getElementById(uid+'-card');
+  var text = card._active === 0 ? card._prompt : card._spec;
+  var fname = (card._active === 0 ? name+'-system-prompt' : name+'-agent-spec') + '.txt';
+  var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text],{type:'text/plain'})); a.download = fname; a.click();
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+
+// ── ATTACHMENTS ───────────────────────────────────────────────────────────────
+
+function handleFileSelect(event) {
+  var files = Array.from(event.target.files);
+  event.target.value = ''; // reset so same file can be reselected
+  files.forEach(function(file) { processFile(file); });
+}
+
+function processFile(file) {
+  var isImage = file.type.startsWith('image/');
+  var isText  = file.type === 'text/plain';
+  var isPdf   = file.type === 'application/pdf';
+  var isDoc   = file.name.endsWith('.docx') || file.name.endsWith('.doc');
+
+  if (isImage) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      pendingAttachments.push({ type: 'image', name: file.name, dataUrl: e.target.result, mimeType: file.type });
+      renderAttachmentPreviews();
+    };
+    reader.readAsDataURL(file);
+  } else if (isText) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      pendingAttachments.push({ type: 'doc', name: file.name, textContent: e.target.result.slice(0, 8000) });
+      renderAttachmentPreviews();
+    };
+    reader.readAsText(file);
+  } else if (isPdf || isDoc) {
+    // For PDF/Word, send to server-side extraction
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var base64 = e.target.result.split(',')[1];
+      fetch('/.netlify/functions/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileBase64: base64, fileName: file.name, mimeType: file.type })
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        var text = d.text || '[Could not extract text from this file]';
+        pendingAttachments.push({ type: 'doc', name: file.name, textContent: text.slice(0, 8000) });
+        renderAttachmentPreviews();
+      })
+      .catch(function(){
+        // Fallback — attach with note
+        pendingAttachments.push({ type: 'doc', name: file.name, textContent: '[File attached — text extraction unavailable. Please describe the key contents.]' });
+        renderAttachmentPreviews();
+      });
+    };
+    reader.readAsDataURL(file);
+  } else {
+    addMessage('assistant', 'Sorry — that file type is not supported yet. Try an image, PDF, Word doc, or plain text file.');
+  }
+}
+
+function renderAttachmentPreviews() {
+  var container = document.getElementById('attachment-previews');
+  container.innerHTML = '';
+  pendingAttachments.forEach(function(att, i) {
+    var chip = document.createElement('div');
+    chip.className = 'attach-chip';
+    if (att.type === 'image') {
+      chip.innerHTML = '<img src="'+att.dataUrl+'" alt="'+esc(att.name)+'"><span class="chip-name">'+esc(att.name)+'</span><span class="chip-remove" onclick="removeAttachment('+i+')">✕</span>';
+    } else {
+      chip.innerHTML = '<span class="chip-icon">📄</span><span class="chip-name">'+esc(att.name)+'</span><span class="chip-remove" onclick="removeAttachment('+i+')">✕</span>';
+    }
+    container.appendChild(chip);
+  });
+}
+
+function removeAttachment(i) {
+  pendingAttachments.splice(i, 1);
+  renderAttachmentPreviews();
+}
+
+function clearAttachments() {
+  pendingAttachments = [];
+  document.getElementById('attachment-previews').innerHTML = '';
+}
+
+// ── LOCAL STORAGE ─────────────────────────────────────────────────────────────
+
+function getSavedAgents() {
+  try { return JSON.parse(localStorage.getItem('ella_agents') || '[]'); } catch(e) { return []; }
+}
+
+function saveAgent(id, data, changelog) {
+  var agents = getSavedAgents();
+  agents.unshift({ id: id, data: data, changelog: changelog || [], savedAt: new Date().toISOString() });
+  localStorage.setItem('ella_agents', JSON.stringify(agents));
+}
+
+function updateSavedAgent(id, data, changelog) {
+  var agents = getSavedAgents();
+  var idx = agents.findIndex(function(a){ return a.id === id; });
+  if (idx !== -1) {
+    agents[idx].data = data;
+    agents[idx].changelog = changelog;
+    agents[idx].updatedAt = new Date().toISOString();
+  } else {
+    agents.unshift({ id: id, data: data, changelog: changelog || [], savedAt: new Date().toISOString() });
+  }
+  localStorage.setItem('ella_agents', JSON.stringify(agents));
+}
+
+function deleteAgent(id) {
+  if (!confirm('Delete this agent? This cannot be undone.')) return;
+  var agents = getSavedAgents().filter(function(a){ return a.id !== id; });
+  localStorage.setItem('ella_agents', JSON.stringify(agents));
+  if (currentAgentId === id) startSession();
+  else renderSidebar();
+}
+
+function duplicateAgent(id) {
+  var agents = getSavedAgents();
+  var original = agents.find(function(a){ return a.id === id; });
+  if (!original) return;
+  var newId = 'agent_' + Date.now();
+  var newData = JSON.parse(JSON.stringify(original.data));
+  newData.clientName = (newData.clientName || 'Agent') + ' (Copy)';
+  var newAgent = {
+    id: newId,
+    data: newData,
+    changelog: [{ time: new Date().toLocaleString('en-GB'), note: 'Duplicated from: ' + (original.data.clientName || 'unnamed agent') }],
+    savedAt: new Date().toISOString()
+  };
+  agents.unshift(newAgent);
+  localStorage.setItem('ella_agents', JSON.stringify(agents));
+  renderSidebar();
+  loadAgent(newId);
+}
+
+function calcConfidence(d) {
+  var checks = [
+    !!d.clientName, !!d.sector, !!d.website, !!d.agentName,
+    !!d.channel, !!(d.flows && d.flows.length > 0),
+    !!(d.flowSteps && d.flowSteps.length > 0 && d.flowSteps[0].flow),
+    !!d.objective, !!(d.fields && d.fields.length > 0),
+    !!(d.scoring && d.scoring.length > 0 && d.scoring[0].signal),
+    !!d.warmth, !!d.formality, !!d.closing,
+    !!(d.sectorRules && d.sectorRules.length > 0 && d.sectorRules[0].rule),
+    !!d.hours, !!d.email,
+    !!d.gdprRegime, !!d.lawfulBasis, !!d.dataRetention
+  ];
+  var confirmed = checks.filter(Boolean).length;
+  var assumptionPenalty = d.assumptions ? Math.min(d.assumptions.filter(function(a){ return a.field; }).length * 3, 20) : 0;
+  return Math.max(0, Math.round((confirmed / checks.length) * 100) - assumptionPenalty);
+}
+
+function openChecklist(uid) {
+  var card = document.getElementById(uid + '-card');
+  var d = currentAgentData || {};
+  var items = [
+    { id: 'cl1', label: 'WABA number confirmed', detail: 'WhatsApp Business Account number is live and assigned to this client', done: !!d.waba && d.waba !== '[TBC]' },
+    { id: 'cl2', label: 'Escalation email set', detail: 'An email address is configured to receive escalated conversations', done: !!d.email && d.email !== '[TBC]' },
+    { id: 'cl3', label: 'Opening hours verified', detail: 'Hours are accurate and reflect any seasonal or branch variations', done: !!d.hours && d.hours !== '[TBC]' },
+    { id: 'cl4', label: 'All assumptions reviewed', detail: 'Every item in the Assumptions tab has been confirmed or corrected', done: !d.assumptions || d.assumptions.filter(function(a){ return a.field; }).length === 0 },
+    { id: 'cl5', label: 'Flows tested end to end', detail: 'Each active flow has been run in VeycoChat and produces the expected output', done: false },
+    { id: 'cl6', label: 'Tone sign-off received', detail: 'Client or internal stakeholder has approved the agent tone and opening message', done: false },
+    { id: 'cl7', label: 'Completion block verified', detail: 'JSON completion block is firing correctly at the end of test sessions', done: false },
+    { id: 'cl8', label: 'Out-of-scope flows confirmed', detail: 'The agent handles out-of-scope requests gracefully without guessing', done: !!d.outOfScope },
+    { id: 'cl9', label: 'GDPR / data privacy reviewed', detail: 'Lawful basis confirmed, retention period set, consent statement approved', done: !!(d.gdprRegime && d.lawfulBasis && d.dataRetention) },
+    { id: 'cl10', label: 'Flow scripts reviewed end to end', detail: 'Every active flow has a defined opening, steps, escalation trigger and closing line', done: !!(d.flowSteps && d.flowSteps.length > 0 && d.flowSteps[0].steps && d.flowSteps[0].steps.length > 0) }
+  ];
+
+  var overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'checklist-modal';
+
+  var doneCount = items.filter(function(i){ return i.done; }).length;
+  var itemsHtml = items.map(function(item) {
+    return '<div class="checklist-item' + (item.done ? ' checked' : '') + '" id="wrap-'+item.id+'">' +
+      '<input type="checkbox" id="'+item.id+'"' + (item.done ? ' checked' : '') + ' onchange="toggleChecklistItem(\''+item.id+'\')">' +
+      '<label for="'+item.id+'">'+esc(item.label)+'<span>'+esc(item.detail)+'</span></label>' +
+      '</div>';
+  }).join('');
+
+  overlay.innerHTML =
+    '<div class="modal">' +
+      '<h3>Pre-Deploy Checklist</h3>' +
+      '<p class="modal-sub">' + esc(d.clientName || 'Agent') + ' — tick every item before going live</p>' +
+      '<div class="checklist-progress" id="cl-progress">'+doneCount+' of '+items.length+' complete</div>' +
+      itemsHtml +
+      '<div class="modal-footer">' +
+        '<button class="modal-btn secondary" onclick="document.getElementById(\'checklist-modal\').remove()">Close</button>' +
+        '<button class="modal-btn primary" onclick="markDeployReady()">Mark as Deploy Ready ✓</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e){ if (e.target === overlay) overlay.remove(); });
+}
+
+function toggleChecklistItem(id) {
+  var cb = document.getElementById(id);
+  var wrap = document.getElementById('wrap-' + id);
+  if (cb && wrap) wrap.classList.toggle('checked', cb.checked);
+  var all = document.querySelectorAll('#checklist-modal .checklist-item input[type=checkbox]');
+  var done = Array.from(all).filter(function(c){ return c.checked; }).length;
+  var prog = document.getElementById('cl-progress');
+  if (prog) prog.textContent = done + ' of ' + all.length + ' complete';
+}
+
+function markDeployReady() {
+  var all = document.querySelectorAll('#checklist-modal .checklist-item input[type=checkbox]');
+  var done = Array.from(all).filter(function(c){ return c.checked; }).length;
+  if (done < all.length) {
+    if (!confirm(done + ' of ' + all.length + ' items complete. Mark as deploy ready anyway?')) return;
+  }
+  document.getElementById('checklist-modal').remove();
+  addMessage('assistant', '✅ **Deploy checklist complete.** ' + done + '/' + all.length + ' items signed off. ' + (done === all.length ? 'This agent is ready to go live.' : 'Outstanding items should be resolved before launch.'));
+  if (currentAgentId) {
+    var agents = getSavedAgents();
+    var idx = agents.findIndex(function(a){ return a.id === currentAgentId; });
+    if (idx !== -1) {
+      agents[idx].deployChecked = true;
+      agents[idx].deployScore = done + '/' + all.length;
+      localStorage.setItem('ella_agents', JSON.stringify(agents));
+    }
+  }
+  renderSidebar(currentAgentId);
+}
+
+function renderSidebar(activeId) {
+  var list = document.getElementById('config-list');
+  var agents = getSavedAgents();
+  if (agents.length === 0) {
+    list.innerHTML = '<div style="padding:20px;color:var(--grey-400);font-size:13px;text-align:center">No saved agents yet.<br>Build your first one to begin.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  agents.forEach(function(agent) {
+    var item = document.createElement('div');
+    item.className = 'config-item' + (agent.id === activeId ? ' active' : '');
+    var date = new Date(agent.updatedAt || agent.savedAt);
+    var dateStr = date.toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+    item.innerHTML =
+      '<div class="ci-name">'+esc(agent.data.clientName||'Unnamed')+'</div>' +
+      '<div class="ci-meta">'+esc(agent.data.sector||'—')+'</div>' +
+      '<div class="ci-date">'+dateStr+(agent.changelog && agent.changelog.length > 0 ? ' · '+agent.changelog.length+' edit'+(agent.changelog.length>1?'s':'') : '')+(agent.deployChecked ? ' · ✅ '+agent.deployScore : '')+'</div>' +
+      '<div class="config-item-actions">' +
+      '<button class="ci-del" onclick="event.stopPropagation();duplicateAgent(\''+agent.id+'\')" style="color:var(--purple)">⧉ Dupe</button>' +
+      '<button class="ci-del" onclick="event.stopPropagation();deleteAgent(\''+agent.id+'\')">✕ Delete</button>' +
+      '</div>';
+    item.addEventListener('click', function(){ loadAgent(agent.id); });
+    list.appendChild(item);
+  });
+}
+
+// ── PROMPT BUILDERS ───────────────────────────────────────────────────────────
+
+function buildPrompt(d) {
+  var sr=(d.sectorRules||[]).map(function(r){return '- '+r.id+': '+r.rule;}).join('\n');
+  var cr=(d.clientRules||[]).map(function(r){return '- '+r.id+': '+r.rule;}).join('\n');
+  var sc=(d.scoring||[]).map(function(r){return '  '+r.score+'  '+r.signal;}).join('\n');
+  var fl=(d.flows||[]).map(function(f){return '- '+f;}).join('\n');
+  var fd=(d.fields||[]).map(function(f){
+    if (typeof f === 'string') return '- '+f;
+    if (f && typeof f === 'object') {
+      var parts = [];
+      if (f.field || f.name || f.label) parts.push(f.field || f.name || f.label);
+      if (f.flow || f.context) parts.push('('+( f.flow || f.context)+')');
+      if (f.type) parts.push('['+f.type+']');
+      return '- '+(parts.join(' ') || JSON.stringify(f));
+    }
+    return '- '+String(f);
+  }).join('\n');
+  return [
+'# ELLA AI — SYSTEM PROMPT',
+'# Client: '+(d.clientName||'[TBC]'),
+'# Generated: '+new Date().toLocaleDateString('en-GB'),
+'# Version: '+(d.version||'1.0'),
+'# ─────────────────────────────────────────────',
+'',
+'## IDENTITY',
+'You are '+(d.agentName||'Ella')+', the AI assistant for '+(d.clientName||'[TBC]')+'.',
+'Sector: '+(d.sector||'[TBC]')+(d.subsector?' — '+d.subsector:''),
+'Website: '+(d.website||'[TBC]'),
+'Channel: '+(d.channel||'WhatsApp (WABA)'),
+'',
+'## SESSION CONTEXT',
+'- {{shop_name}} — location the customer contacted',
+'- {{agent_name}} — '+(d.agentName||'Ella'),
+'- {{conversation_history}} — persistent session memory',
+'- {{today_date}} — current date',
+'',
+'## OBJECTIVE',
+d.objective||'[TBC]',
+d.outOfScope ? '\n## OUT OF SCOPE (V1)\n'+d.outOfScope : '',
+'',
+'## ACTIVE FLOWS',
+fl||'[TBC]',
+d.flowNotes ? '\nFlow notes:\n'+d.flowNotes : '',
+'',
+'## NON-NEGOTIABLE RULES',
+'',
+'### Universal (locked)',
+'- U-01: Never impersonate a human.',
+'- U-02: Never fabricate facts, prices, or policies.',
+'- U-03: Do not apologise. Redirect, clarify, or escalate.',
+'- U-04: No financial or legal advice.',
+'- U-05: If customer appears under 18, end commercial flow immediately.',
+'- U-06: If customer appears distressed, pause and offer a human.',
+'- U-07: Escalate immediately if customer requests a human — no retry.',
+'- U-08: Every session ends with a structured JSON completion block.',
+'',
+'### Sector Rules',
+sr||'(none)',
+'',
+'### Client Rules',
+cr||'(none)',
+'',
+'## TONE',
+'- Warmth: '+(d.warmth||'High'),
+'- Formality: '+(d.formality||'Professional'),
+'- Prohibited: '+(d.prohibited||'sorry, can, just, basically'),
+'- Closing: '+(d.closing||'Please do not hesitate to get in touch.'),
+d.toneExample ? '\n### Opening example\n'+d.toneExample : '',
+'',
+'## DATA CAPTURE',
+fd||'[TBC]',
+'',
+'## LEAD SCORING',
+sc||'[TBC]',
+'',
+'Score bands:',
+'- Hot: '+(d.bandHot||'70–100 — contact within 2 hours'),
+'- Warm: '+(d.bandWarm||'40–69 — contact same day'),
+'- Standard: '+(d.bandStd||'0–39 — contact within 48 hours'),
+'',
+'## FLOW SCRIPTS',
+(d.flowSteps && d.flowSteps.length > 0 && d.flowSteps[0].flow ? d.flowSteps.map(function(fs){
+  var lines = ['### ' + (fs.flow||'Flow')];
+  if (fs.opening) lines.push('Opening: ' + fs.opening);
+  if (fs.steps && fs.steps.length) fs.steps.forEach(function(s,i){ lines.push((i+1)+'. '+s); });
+  if (fs.escalationTrigger) lines.push('Escalate if: ' + fs.escalationTrigger);
+  if (fs.successOutcome) lines.push('Success: ' + fs.successOutcome);
+  if (fs.closingLine) lines.push('Closing: ' + fs.closingLine);
+  return lines.join('\n');
+}).join('\n\n') : '[Flow scripts not yet configured]'),
+'',
+'## DATA PRIVACY AND GDPR',
+'- Regime: '+(d.gdprRegime||'UK GDPR'),
+'- Lawful basis: '+(d.lawfulBasis||'Legitimate interests'),
+'- Consent statement: '+(d.consentStatement||'[TBC]'),
+'- Data retention: '+(d.dataRetention||'90 days'),
+d.privacyPolicyUrl ? '- Privacy policy: '+d.privacyPolicyUrl : '',
+d.specialCategoryNotes ? '- Special category notes: '+d.specialCategoryNotes : '',
+(d.gdprRules && d.gdprRules.length > 0 ? '\nGDPR rules:\n'+(d.gdprRules.map(function(r){ return '- '+r; }).join('\n')) : ''),
+'',
+'## COMPLETION BLOCK (required every session)',
+'{',
+'  "session_date": "{{today_date}}",',
+'  "shop_name": "{{shop_name}}",',
+'  "flow": "",',
+'  "customer": { "first_name": "", "phone": "" },',
+'  "lead_score": 0,',
+'  "lead_band": "",',
+'  "session_outcome": "complete | escalated | abandoned",',
+'  "notes": ""',
+'}',
+'',
+'# END OF SYSTEM PROMPT'
+].filter(function(l){return l!==null&&l!==undefined;}).join('\n');
+}
+
+function buildSpec(d) {
+  var sr=(d.sectorRules||[]).map(function(r){return '    '+r.id+'  '+r.rule;}).join('\n');
+  var cr=(d.clientRules||[]).map(function(r){return '    '+r.id+'  '+r.rule;}).join('\n');
+  var sc=(d.scoring||[]).map(function(r){return '    '+r.score+'  '+r.signal;}).join('\n');
+  return [
+'╔══════════════════════════════════════════════════════════╗',
+'║  ELLA AI — AGENT SPECIFICATION                           ║',
+'║  '+(d.clientName||'Client TBC').slice(0,54).padEnd(54)+'  ║',
+'╚══════════════════════════════════════════════════════════╝',
+'',
+'Generated:  '+new Date().toLocaleDateString('en-GB'),
+'Status:     Draft — pending client review',
+'',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'S1  IDENTITY',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'    Agent:      '+(d.agentName||'Ella'),
+'    Client:     '+(d.clientName||'—'),
+'    Sector:     '+(d.sector||'—')+(d.subsector?' — '+d.subsector:''),
+'    Website:    '+(d.website||'—'),
+'    Location 1: '+(d.loc1Name||'[TBC]')+(d.loc1Addr?' — '+d.loc1Addr:''),
+'    Location 2: '+(d.loc2Name||'—')+(d.loc2Addr?' — '+d.loc2Addr:''),
+'    Hours:      '+(d.hours||'[TBC]'),
+'    Email:      '+(d.email||'[TBC]'),
+'    WABA:       '+(d.waba||'[TBC]'),
+'',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'S3  OBJECTIVE',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'    '+(d.objective||'—'),
+d.outOfScope ? '\n    Out of scope: '+d.outOfScope : '',
+'',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'S4  OPERATING MODE',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'    Channel:    '+(d.channel||'—'),
+'    Flows:      '+(d.flows||[]).join(' · '),
+'    CRM:        '+(d.crm||'None (V1)'),
+'    Currency:   '+(d.currency||'GBP'),
+'    Locale:     '+(d.locale||'UK'),
+'',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'S5  RULES',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'    Universal rules U-01 to U-08 always apply.',
+'',
+'    Sector rules:',
+sr||'    (none)',
+'',
+'    Client rules:',
+cr||'    (none)',
+'',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'S6  TONE',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'    Warmth:     '+(d.warmth||'—'),
+'    Formality:  '+(d.formality||'—'),
+'    Prohibited: '+(d.prohibited||'—'),
+'    Closing:    '+(d.closing||'—'),
+d.toneExample ? '\n    Opening:\n    '+d.toneExample : '',
+'',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'E6  DATA & SCORING',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'    Fields: '+(d.fields||[]).map(function(f){ if(typeof f==='string') return f; if(f&&typeof f==='object') return f.field||f.name||f.label||JSON.stringify(f); return String(f); }).join(', '),
+'',
+'    Scoring:',
+sc||'    —',
+'',
+'    Hot:      '+(d.bandHot||'—'),
+'    Warm:     '+(d.bandWarm||'—'),
+'    Standard: '+(d.bandStd||'—'),
+'',
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+'END  ·  Ella AI Agent Builder  ·  '+new Date().toLocaleDateString('en-GB'),
+'━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'
+].join('\n');
+}
+</script>
+</body>
+</html>
