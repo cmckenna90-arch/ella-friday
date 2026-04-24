@@ -338,39 +338,51 @@ var editMode = false;
 var pendingAttachments = []; // [{type:'image'|'doc', name:'', dataUrl:'', mimeType:'', textContent:''}]
 
 // Full system prompt — used for generation turns only
-var SYSTEM_FULL = `You are the Ella AI Agent Builder. Generate a complete, production-ready agent configuration based on everything discussed. If anything is missing, use your sector knowledge to fill it in — do not leave fields as [TBC].
+var SYSTEM_FULL = `You are the Ella AI Agent Builder. Based on the conversation so far, generate a complete agent configuration. Use your sector knowledge to fill any gaps — do not leave fields empty or as [TBC].
 
-CRITICAL — FLOW SCRIPTS: flowSteps is the most important field. Every active flow MUST have: a fully written opening message, 4–6 concrete steps (actual words the agent says or asks), a specific escalation trigger, a clear success outcome, and a closing line. Write the actual conversation script — not placeholders.
+OUTPUT: output READY_TO_GENERATE on its own line, then immediately a single valid JSON object. No markdown, no preamble, nothing after the closing brace.
 
-Good flowStep example:
-{"flow":"Demo booking","opening":"Hi, I am Ella from Enchat. Are you looking to book a demo or find out more about what we do?","steps":["Ask what type of business they run and how many inbound enquiries they handle per week","Ask which channels they currently use — phone, email, WhatsApp, or a mix","Ask what problem they are trying to solve: response times, out-of-hours cover, or reducing admin","Confirm details and advise that the Enchat team will be in touch within one business day to arrange the demo"],"escalationTrigger":"Prospect asks for immediate call or raises specific pricing","successOutcome":"Prospect details captured and routed to sales","closingLine":"Thanks for your interest in Enchat. The team will be in touch shortly."}
+IMPORTANT: Set flowSteps to an empty array []. Flow scripts will be generated in a separate pass. Focus on getting all other fields right and complete.
 
-SECTOR DEFAULTS (use if not confirmed in conversation):
-- B2B SaaS or AI platform: flows = Demo booking, General enquiry, Partner enquiry. Rules: no pricing commitments, no SLA guarantees. Scoring: demo requested +25, budget holder +20, specific use case +15, timeline provided +10, company size provided +5.
-- Lettings agency: flows = Tenant enquiry, Viewing booking, Maintenance report, Landlord enquiry. Rules: no deposit advice, no referencing outcomes to tenants.
-- Legal: flows = New enquiry, Case status, Document request. Rules: no legal advice, no outcome confirmation.
-- Healthcare or dental: flows = Appointment booking, Patient enquiry, Referral. Rules: special category data, escalate clinical queries immediately.
+Required JSON fields:
+- clientName, agentName, sector, subsector, website, email
+- loc1Name, loc1Addr, loc2Name, loc2Addr
+- hours, waba, channel, crm, currency, locale
+- flows (string array — list of active flow names)
+- flowSteps: []
+- objective, outOfScope, flowNotes
+- sectorRules (array of {id,rule} — min 4, specific to this sector and client)
+- clientRules (array of {id,rule} — min 2)
+- warmth, formality, prohibited, closing, toneExample
+- fields (string array — min 6 specific capture fields)
+- scoring (array of {signal,score} — min 6 weighted signals matching what was discussed)
+- bandHot, bandWarm, bandStd
+- gdprRegime, privacyPolicyUrl, lawfulBasis, consentStatement, dataRetention, specialCategoryNotes
+- gdprRules (string array — min 2)
+- suggestedIntegrations (array of {name,purpose,category,v1,why} — 6 entries, v1 always "no")
+- salesBrief (2–3 sentences commercial case)
+- estimatedTimeSaving
+- keyPainPoints (4–6 items)
+- v2Flows (string array)
+- assumptions (array of {field,assumed,flag:"Needs confirmation"})
 
-OUTPUT INSTRUCTIONS: output READY_TO_GENERATE on its own line, then immediately output a single valid JSON object. No markdown fences, no preamble, no text after the closing brace.
+Every field must contain real, specific content. British English throughout. No [TBC] unless genuinely impossible to infer.\`
 
-Required JSON fields: clientName, agentName, sector, subsector, website, email, loc1Name, loc1Addr, loc2Name, loc2Addr, hours, waba, channel, crm, currency, locale, flows (string array), flowSteps (array — one entry per flow, fully scripted as shown above), objective, outOfScope, flowNotes, sectorRules (array of {id,rule} — min 4), clientRules (array of {id,rule} — min 2), warmth, formality, prohibited, closing, toneExample, fields (string array — min 5), scoring (array of {signal,score} — min 5), bandHot, bandWarm, bandStd, gdprRegime, privacyPolicyUrl, lawfulBasis, consentStatement, dataRetention, specialCategoryNotes, gdprRules (string array), suggestedIntegrations (array of {name,purpose,category,v1,why} — 6 entries, v1 always "no"), salesBrief, estimatedTimeSaving, keyPainPoints (4–6 items), v2Flows (string array), assumptions (array of {field,assumed,flag:"Needs confirmation"}).
+var FLOW_SYSTEM = `You are the Ella AI Agent Builder. You have just generated an agent configuration. Now generate detailed, production-ready conversation flow scripts for each active flow.
 
-Every single field must contain real, specific content based on the client and sector. No [TBC] unless genuinely impossible to infer.`
+For each flow in the flows array, write a fully scripted flowStep entry. The scripts must:
+- Be written in British English. No contracted words. No filler.
+- Sound warm, human, and natural — not robotic or question-list style
+- Include an opening message (actual words Ella says)
+- Include 4–6 steps as conversation guidance (what Ella is trying to achieve at each point, not a numbered list of questions)
+- Include a specific escalation trigger
+- Include a clear success outcome
+- Include a closing line (actual words Ella says)
 
-// Lean conversational system prompt — used for all non-generation turns (faster, smaller payload)
-var SYSTEM = `You are the Ella AI Agent Builder — an internal tool that configures AI agents called Ella for any client or sector.
+Output a JSON object with a single key "flowSteps" containing the array. No other fields. No markdown. Example shape:
+{"flowSteps":[{"flow":"Flow name","opening":"Hello and welcome...","steps":["Step guidance 1","Step guidance 2","Step guidance 3","Step guidance 4"],"escalationTrigger":"specific trigger","successOutcome":"specific outcome","closingLine":"Closing words Ella says"}]}
 
-Gather information to build a production-ready system prompt and agent spec. Be warm, efficient, sharp. Ask 2–3 grouped questions per message. British English. No em dashes. No filler. Confirm inferences explicitly.
-
-Gather in order: (1) client basics — name, URL, email, hours, sector, agent name, channel, locations. (2) Flows — suggest likely flows, confirm V1 scope, script each in detail: opening, steps, branches, escalation triggers, success, closing line. (3) Rules and tone — sector rules, client rules, warmth/formality/prohibited/closing/opening example. (4) Data and scoring — capture fields, scoring signals with points, band thresholds. (5) GDPR — regime, lawful basis, consent, retention, privacy URL. (6) Scope — out of scope V1, CRM, V2 flows.
-
-CONFIRMED SETUP prefix (=== CONFIRMED SETUP ===): all listed fields are done — go straight to flow scripts. Do not re-ask them.
-
-SECTOR DEFAULTS: Lettings (tenant/landlord flows, maintenance, referencing — no deposit advice, no referencing outcomes to tenants). Legal (case status, intake, documents — no legal advice). Finance (account, payments, complaints — FCA language, no financial advice, immediate escalation for complaints). Healthcare (special category rules, escalate distress/clinical/safeguarding).
-
-Log every assumption. Before generating: confirm 1+ fully scripted flow, 4+ sector rules, 5+ fields, 4+ scoring signals, GDPR confirmed. EXCEPTION: if user says "generate with assumptions" or similar — fill gaps with best assumption, log all, generate immediately.
-
-When ready to generate, output READY_TO_GENERATE on its own line, then the JSON. Do NOT output the JSON schema in this conversational mode — only output it when actually generating.`;
+Generate one entry per flow. Make the scripts specific to this client, sector, and the details confirmed in the conversation.\`;
 
 var EDIT_SYSTEM_PREFIX = `You are the Ella AI Agent Builder in EDIT MODE.
 
@@ -1056,8 +1068,8 @@ function callClaude() {
   }
 
   // Keep last 16 messages if conversation is long
-  if (trimmedHistory.length > 16) {
-    trimmedHistory = trimmedHistory.slice(-16);
+  if (trimmedHistory.length > 24) {
+    trimmedHistory = trimmedHistory.slice(-24);
   }
 
   // Replace the last user message with the full enriched API blocks if available (research context, form data)
@@ -1105,7 +1117,7 @@ function callClaude() {
   // For generation turns: use full system prompt with JSON schema, allow 4096 tokens
   // For conversational turns: use lean system prompt, cap at 800 tokens (questions need ~200-400 tokens)
   var effectiveSystem = systemPrompt; // already set above (lean SYSTEM or EDIT_SYSTEM_PREFIX)
-  var maxTokens = 800;
+  var maxTokens = 1800;
 
   if (isGenerateTurn && !editMode) {
     maxTokens = 2000;
@@ -1157,12 +1169,10 @@ function handleGenerate(reply) {
   var pre = reply.slice(0, reply.indexOf('READY_TO_GENERATE')).trim();
   if (pre) addMessage('assistant', pre);
 
-  // Robust JSON extraction — handles newline+{, same-line {, or ```json blocks
+  // Extract JSON from call 1
   var d = {};
   try {
-    // Strip markdown code fences if present
     var stripped = reply.replace(/```json\s*/gi, '').replace(/```\s*/g, '');
-    // Find the first { after READY_TO_GENERATE
     var after = stripped.slice(stripped.indexOf('READY_TO_GENERATE') + 'READY_TO_GENERATE'.length);
     var jsonStart = after.indexOf('{');
     var jsonEnd = after.lastIndexOf('}');
@@ -1172,10 +1182,69 @@ function handleGenerate(reply) {
       d = currentAgentData || {};
     }
   } catch(e) {
-    console.warn('JSON parse failed:', e);
+    console.warn('JSON parse failed on call 1:', e);
     d = currentAgentData || {};
   }
 
+  // Show a progress message while call 2 runs
+  addMessage('assistant', 'Agent configuration generated. Now scripting the conversation flows — one moment...');
+  showTyping();
+
+  // Build context for call 2 — summarise what was confirmed in the conversation
+  var flowContext = 'Client: ' + (d.clientName||'Unknown') + '\n' +
+    'Sector: ' + (d.sector||'') + (d.subsector ? ' — ' + d.subsector : '') + '\n' +
+    'Agent name: ' + (d.agentName||'Ella') + '\n' +
+    'Channel: ' + (d.channel||'WhatsApp') + '\n' +
+    'Tone: ' + (d.warmth||'') + ', ' + (d.formality||'') + '. No contracted words. British English.\n' +
+    'Prohibited words: ' + (d.prohibited||'') + '\n' +
+    'Hours: ' + (d.hours||'') + '\n' +
+    'Email: ' + (d.email||'') + '\n' +
+    'Active flows: ' + (d.flows||[]).join(', ') + '\n' +
+    'Sector rules: ' + (d.sectorRules||[]).map(function(r){return r.rule;}).join('; ') + '\n' +
+    'Data fields to capture: ' + (d.fields||[]).join(', ');
+
+  fetch('/.netlify/functions/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      messages: [{ role: 'user', content: flowContext }],
+      system: FLOW_SYSTEM,
+      apiKey: API_KEY,
+      maxTokens: 2000
+    })
+  })
+  .then(function(r) {
+    var ct = r.headers.get('content-type') || '';
+    if (!ct.includes('application/json')) {
+      return r.text().then(function(t){ throw new Error('Flow scripts call failed (' + r.status + ')'); });
+    }
+    return r.json();
+  })
+  .then(function(data) {
+    removeTyping();
+    if (!data.error && data.content && data.content[0]) {
+      var flowText = data.content[0].text;
+      flowText = flowText.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
+      try {
+        var fs = JSON.parse(flowText.slice(flowText.indexOf('{'), flowText.lastIndexOf('}')+1));
+        if (fs.flowSteps && fs.flowSteps.length) {
+          d.flowSteps = fs.flowSteps;
+        }
+      } catch(e) {
+        console.warn('Flow scripts JSON parse failed:', e);
+      }
+    }
+    finaliseGenerate(d);
+  })
+  .catch(function(e) {
+    removeTyping();
+    console.warn('Flow scripts call error:', e);
+    // Still render what we have — better than nothing
+    finaliseGenerate(d);
+  });
+}
+
+function finaliseGenerate(d) {
   var isEdit = editMode && currentAgentId;
   var changelog = [];
 
@@ -1200,6 +1269,7 @@ function handleGenerate(reply) {
   var spec   = buildSpec(d);
   addOutputCard(d, prompt, spec, changelog);
   renderSidebar(currentAgentId);
+  document.getElementById('send-btn').disabled = false;
   addMessage('assistant', isEdit
     ? 'Done — outputs updated above. The change has been logged. Copy the **System Prompt** tab and paste it into VeycoChat.'
     : 'Both outputs are ready above. Copy the **System Prompt** tab and paste it directly into VeycoChat. The **Agent Spec** tab is your client-facing document.\n\nYou can continue chatting to refine anything — changes will update the outputs automatically.');
