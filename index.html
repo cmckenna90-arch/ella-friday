@@ -366,7 +366,7 @@ Required JSON fields:
 - v2Flows (string array)
 - assumptions (array of {field,assumed,flag:"Needs confirmation"})
 
-Every field must contain real, specific content. British English throughout. No [TBC] unless genuinely impossible to infer.\`
+Every field must contain real, specific content. British English throughout. No [TBC] unless genuinely impossible to infer.`;
 
 var FLOW_SYSTEM = `You are the Ella AI Agent Builder. You have just generated an agent configuration. Now generate detailed, production-ready conversation flow scripts for each active flow.
 
@@ -382,7 +382,7 @@ For each flow in the flows array, write a fully scripted flowStep entry. The scr
 Output a JSON object with a single key "flowSteps" containing the array. No other fields. No markdown. Example shape:
 {"flowSteps":[{"flow":"Flow name","opening":"Hello and welcome...","steps":["Step guidance 1","Step guidance 2","Step guidance 3","Step guidance 4"],"escalationTrigger":"specific trigger","successOutcome":"specific outcome","closingLine":"Closing words Ella says"}]}
 
-Generate one entry per flow. Make the scripts specific to this client, sector, and the details confirmed in the conversation.\`;
+Generate one entry per flow. Make the scripts specific to this client, sector, and the details confirmed in the conversation.`;
 
 var EDIT_SYSTEM_PREFIX = `You are the Ella AI Agent Builder in EDIT MODE.
 
